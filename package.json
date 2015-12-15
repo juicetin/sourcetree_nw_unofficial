@@ -1,0 +1,19 @@
+{
+  "name": "sourcetree_ns_unofficial",
+  "version": "1.0.0",
+  "description": "hack day project (maybe not by the time you're viewing this) to create a linux desktop version of SourceTree",
+  "main": "app.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jyting/sourcetree_nw_unofficial.git"
+  },
+  "author": "Justin Yiwei Ting",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jyting/sourcetree_nw_unofficial/issues"
+  },
+  "homepage": "https://github.com/jyting/sourcetree_nw_unofficial#readme"
+}
