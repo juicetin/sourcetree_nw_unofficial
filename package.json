@@ -2,7 +2,7 @@
   "name": "sourcetree_ns_unofficial",
   "version": "1.0.0",
   "description": "hack day project (maybe not by the time you're viewing this) to create a linux desktop version of SourceTree",
-  "main": "app.js",
+  "main": "index.html",
   "scripts": {
     "test": "npm test"
   },
@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/jyting/sourcetree_nw_unofficial/issues"
   },
-  "homepage": "https://github.com/jyting/sourcetree_nw_unofficial#readme"
+  "homepage": "https://github.com/jyting/sourcetree_nw_unofficial#readme",
+  "dependencies": {
+    "node-webkit": "0.0.0"
+  }
 }
