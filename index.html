@@ -1,10 +1,54 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>Hello World!</title>
+
+		<script src="./bower_components/gitgraph.js/src/gitgraph.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+		<script src="./main.js"></script>
+		<link rel="stylesheet" type="text/css" href="css/gitgraph.css"/>
+		<link rel="stylesheet" type="text/css" href="css/main.css"/>
+
+		<script>
+			$( document ).ready(function() {
+				console.log('ready');
+				var li = document.getElementsByTagName("li");
+			
+				for (var i = 0; i < li.length; ++i) {
+					li[i].addEventListener("click", myScript);
+				}
+
+			
+				function myScript(e) {
+					alert(e.target.attributes.id.value);
+				}
+			});
+		</script>
+
 	</head>
 	<body>
-		<h1>Hello World!</h1>
-		We are using node.js <script>document.write(process.version)</script>
+		<header>
+			<h1>Git for Linux</h1>
+		</header>
+
+		<nav>
+			<button id="load" name="load" onclick="loadRepo()">Load Local Repository</button><br>
+			<button id="folder" name="folder" onclick="loadFolder()">Load Folder</button><br>
+			<button id="loadR" name="loadR" onclick="checkIfRepo()">Check If Repo </button><br>
+			<button id="getGit" name="getGit" onclick="getGitContent()">Get Git Content</button><br>
+			<button id="getGitGraph" name="getGitGraph" onclick="getGitGraph()">Get Git Graph</button><br>
+		</nav>
+
+		<div id="commit-section" class="sectionleft">
+			<p>Logs</p>
+			<ul id="commits">
+
+			</ul>
+		</div>
+
+		<div id="detail-section" class="sectionright">
+			<p>Details</p>
+			<p id="commit-details"> </p>
+		</div>
+
 	</body>
 </html>

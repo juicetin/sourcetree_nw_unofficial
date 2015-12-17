@@ -1,0 +1,43 @@
+header {
+	background-color: black;
+	color: white;
+	text-align: center;
+	padding: 5px;
+}
+
+nav {
+	line-height: 30px;
+	background-color: #eeeeee;
+	height: 100%;
+	width: 100px;
+	display: inline-block;
+	padding: 5px;
+}
+
+sectionleft {
+	width: 40%;
+	display: inline-block;
+	padding: 10px;
+}
+
+sectionright {
+	width: 40%;
+	display: inline-block;
+	padding: 10px;
+}
+
+footer {
+	background-color: black;
+	color: white;
+	clear: both;
+	text-align: center;
+	padding: 5px;
+}
+
+button {
+	float: left;
+}
+
+commit {
+	background-color: blue;
+}

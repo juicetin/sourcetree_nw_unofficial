@@ -1,0 +1,22 @@
+{
+  "name": "gitgraph.js",
+  "version": "1.1.0",
+  "main": [
+    "./build/gitgraph.js",
+    "./build/gitgraph.css"
+  ],
+  "ignore": [
+    "**/.*"
+  ],
+  "homepage": "https://github.com/nicoespeon/gitgraph.js",
+  "_release": "1.1.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "v1.1.0",
+    "commit": "d77c131aa0ab300e9c3a5ce078ec35d6c6a2798e"
+  },
+  "_source": "git://github.com/nicoespeon/gitgraph.js.git",
+  "_target": "~1.1.0",
+  "_originalSource": "gitgraph.js",
+  "_direct": true
+}
