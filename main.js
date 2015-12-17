@@ -16,7 +16,20 @@ var fs = require('fs');
 var exec = require('child-process-promise').exec;
 var Promise = require('bluebird');
 
+var gitToolbarHandlers = require('./gitToolbarHandlers.js');
+
 var globals = {};
+
+$( document ).ready(function() {
+	var gitToolbarButtons = document.getElementsByClassName("git-toolbar-btn");
+	winston.info(gitToolbarHandlers);
+	for (var i = 0; i < gitToolbarButtons.length; ++i) {
+		var objId = gitToolbarButtons[i].id;
+		gitToolbarButtons[i].addEventListener("click", gitToolbarHandlers[objId]);
+		winston.info(objId, ' : ' , gitToolbarHandlers[objId]);
+		// li[i].addEventListener("click", showCommit);
+	}
+});
 
 function loadRepo() {
 	return loadFolder()
@@ -86,7 +99,7 @@ function getGitContent() {
 
 function commitEventListeners() {
 	winston.info('Attempting to commit all listeners');
-	var li = document.getElementsByTagName("li");
+	var li = document.getElementsByClassName("commit");
 	
 	winston.info('There are ', li.length, ' commits in the repository.');
 	for (var i = 0; i < li.length; ++i) {
@@ -97,33 +110,30 @@ function commitEventListeners() {
 }
 
 function showCommit(e) {
+
 	var gitWithDir = 'git --git-dir=' + globals.repoGitPath;
 	var showColor = ' show --color-words ';
 	var commitHash = e.target.attributes.id.value;
 	var convertToHTML = ' | ./ansi2html.sh';
 
-	//var command = 'git --git-dir=' + globals.repoGitPath + ' show ' + commitHash;
 	var command = gitWithDir + showColor + commitHash + convertToHTML;
-	winston.info(command);
+	winston.info('The following bash command is being run and output captured: ', command);
 	
 	return exec(command, {maxBuffer: 1024 * 1024 * 1024})
 	.then(function (result) {
-		var stdout = result.stdout;
 		var stderr = result.stderr;
-
-		//return Promise.resolve(alert(stdout));
-		// git show --color-words  67192b439 | ./ansi2html.sh	
+		if (stderr) {
+			winston.error(stderr);
+		}
 		
-		// var html = hl(stdout);
-		document.getElementById("detail-section").innerHTML = stdout;
+		var HTMLcommitOutput = result.stdout;
+		document.getElementById("detail-section").innerHTML = HTMLcommitOutput;
 		return Promise.resolve();
 	})
 	.fail(function (error) {
 		winston.error('ERROR: ', error, {});
 		return Promise.reject('failed');
 	});
-	// alert(e.target.attributes.id.value);
-	// return Promise.resolve();
 }
 
 function getGitGraph() {
@@ -146,8 +156,9 @@ function getGitGraph() {
 				var commitHash = line.split(" ")[1].substring(0,6);
 
 				// TODO add clickable for each commit (to do various actions)
+				var listClass = " class=\"commit\" ";
 				var listId = "id=" + "\"" + commitHash + "\" ";
-				var listOpen = "<li " + listId +  ">";
+				var listOpen = "<li " + listClass + listId +  ">";
 				listLine = listOpen + commitHash + "</li>";
 				full += listLine;
 			}

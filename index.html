@@ -8,27 +8,31 @@
 		<link rel="stylesheet" type="text/css" href="css/gitgraph.css"/>
 		<link rel="stylesheet" type="text/css" href="css/main.css"/>
 
-		<script>
-			$( document ).ready(function() {
-				console.log('ready');
-				var li = document.getElementsByTagName("li");
-			
-				for (var i = 0; i < li.length; ++i) {
-					li[i].addEventListener("click", myScript);
-				}
-
-			
-				function myScript(e) {
-					alert(e.target.attributes.id.value);
-				}
-			});
-		</script>
-
 	</head>
 	<body>
 		<header>
-			<h1>Git for Linux</h1>
+			<h3 id="titlebar">Git for Linux</h3>
 		</header>
+
+		<!-- BUTTONS -->
+		<div id="toolbar">
+			<ul id="git-toolbar">
+				<li id="commit" class="git-toolbar-btn">Commit</li>
+				<li id="checkout" class="git-toolbar-btn">Checkout</li>
+				<li id="reset" class="git-toolbar-btn">Reset</li>
+				<li id="stash" class="git-toolbar-btn">Stash</li>
+				<li id="add" class="git-toolbar-btn">Add</li>
+				<li id="remove" class="git-toolbar-btn">Remove</li>
+				<li id="addRemove" class="git-toolbar-btn">Add/Remove</li>
+				<li id="fetch" class="git-toolbar-btn">Fetch</li>
+				<li id="pull" class="git-toolbar-btn">Pull</li>
+				<li id="push" class="git-toolbar-btn">Push</li>
+				<li id="branch" class="git-toolbar-btn">Branch</li>
+				<li id="merge" class="git-toolbar-btn">Merge</li>
+				<li id="tag" class="git-toolbar-btn">Tag</li>
+			</ul>
+		</div>
+		<br class="separator">
 
 		<div id="parent-div">
 			<div id="nav" class="child-div">
@@ -52,6 +56,10 @@
 			</div>
 		</div>
 
+
+		<div class="footer">
+			Placeholder
+		</div>
 
 	</body>
 </html>

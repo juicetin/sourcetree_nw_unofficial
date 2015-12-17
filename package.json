@@ -23,5 +23,13 @@
     "highlight": "^0.2.4",
     "node-webkit": "0.0.0",
     "winston": "^2.1.1"
+  },
+  "window": {
+	"title": "Linux Git Client",
+	"frame": false,
+	"toolbar": false,
+	"resizable": false,
+	"width": 1800,
+	"height":1000
   }
 }

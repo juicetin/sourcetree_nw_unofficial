@@ -1,8 +1,23 @@
 header {
+	top: 0;
 	background-color: black;
 	color: white;
 	text-align: center;
-	padding: 5px;
+	height: 35px;
+}
+
+#titlebar {
+	vertical-align: middle;
+	height: 0px;
+}
+
+#toolbar {
+	background-color: #CCCCCC;
+	height:40px;
+}
+
+.separator {
+	clear: both;
 }
 
 #nav {
@@ -10,14 +25,12 @@ header {
 	background: #eeeeee;
 	height: 100%;
 	width: 10%;
-	padding: 5px;
 	vertical-align: top;
 }
 
 #commit-section {
 	height: 800px;
 	width: 15%;
-	padding: 10px;
 	display: inline-block;
 	vertical-align: top;
 	overflow: auto;
@@ -26,22 +39,39 @@ header {
 #detail-section {
 	height: 800px;
 	width: 40%;
-	padding: 10px;
 	display: inline-block;
 	vertical-align: top;
 	overflow: auto;
 }
 
-footer {
-	background-color: black;
-	color: white;
+.footer {
+	background-color: #CCCCCC;
+	color: black;
 	clear: both;
-	text-align: center;
+	vertical-align: bottom;
 	padding: 5px;
+	height:15px;
 }
 
-commit {
-	background-color: blue;
+#git-toolbar {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	background-color: #333;
+}
+
+.git-toolbar-btn {
+	float: left;
+	display: inline-block;
+	color: white;
+	text-align: center;
+	text-decoration: none; 
+	padding: 14px 16px;
+} 
+
+.commit {
+	list-style-type: none;
 }
 
 clearBoth {
