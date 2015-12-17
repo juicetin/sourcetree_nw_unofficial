@@ -21,15 +21,21 @@ var gitToolbarHandlers = require('./gitToolbarHandlers.js');
 var globals = {};
 
 $( document ).ready(function() {
-	var gitToolbarButtons = document.getElementsByClassName("git-toolbar-btn");
-	winston.info(gitToolbarHandlers);
-	for (var i = 0; i < gitToolbarButtons.length; ++i) {
-		var objId = gitToolbarButtons[i].id;
-		gitToolbarButtons[i].addEventListener("click", gitToolbarHandlers[objId]);
-		winston.info(objId, ' : ' , gitToolbarHandlers[objId]);
-		// li[i].addEventListener("click", showCommit);
-	}
+	loadGitToolbarHandlers();
 });
+
+function loadGitToolbarHandlers() {
+	var gitToolbarButtons = document.getElementsByClassName("git-toolbar-btn");
+	for (var i = 0; i < gitToolbarButtons.length; ++i) {
+		if (gitToolbarButtons[i] != undefined) {
+			var objId = gitToolbarButtons[i].id;
+			winston.info(gitToolbarButtons[i].id);
+			gitToolbarButtons[i].addEventListener("click", gitToolbarHandlers[objId]);
+			winston.info(gitToolbarHandlers[objId]);
+		}
+	}
+	return Promise.resolve();
+}
 
 function loadRepo() {
 	return loadFolder()
@@ -54,7 +60,7 @@ function loadFolder() {
 	chooser.addEventListener('change', function (evt) {
 		globals.repoPath= this.value;
 		globals.repoGitPath = globals.repoPath + '/.git/';
-		globals.folderSelecting = false;
+		winston.info('repo git path now ', globals.repoGitPath);
 	}, false);
 
 	chooser.click();
@@ -166,11 +172,10 @@ function getGitGraph() {
 
 		/* Set the appropriate section to hold commits */
 		document.getElementById("commits").innerHTML = full;
-		// $("commits").innerHTML = full;
 		return commitEventListeners();
 	})
 	.fail(function (error) {
-		winston.error('ERROR: ', error);
+		winston.error('ERROR: ', error, {});
 		return Promise.reject('failed');
 	});
 }
