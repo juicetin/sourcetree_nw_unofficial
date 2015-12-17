@@ -5,25 +5,31 @@ header {
 	padding: 5px;
 }
 
-nav {
-	line-height: 30px;
-	background-color: #eeeeee;
+#nav {
+	float: left;
+	background: #eeeeee;
 	height: 100%;
-	width: 100px;
-	display: inline-block;
+	width: 10%;
 	padding: 5px;
+	vertical-align: top;
 }
 
-sectionleft {
-	width: 40%;
-	display: inline-block;
+#commit-section {
+	height: 800px;
+	width: 15%;
 	padding: 10px;
+	display: inline-block;
+	vertical-align: top;
+	overflow: auto;
 }
 
-sectionright {
+#detail-section {
+	height: 800px;
 	width: 40%;
-	display: inline-block;
 	padding: 10px;
+	display: inline-block;
+	vertical-align: top;
+	overflow: auto;
 }
 
 footer {
@@ -34,10 +40,10 @@ footer {
 	padding: 5px;
 }
 
-button {
-	float: left;
-}
-
 commit {
 	background-color: blue;
+}
+
+clearBoth {
+	clear: both;
 }

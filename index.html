@@ -30,25 +30,28 @@
 			<h1>Git for Linux</h1>
 		</header>
 
-		<nav>
-			<button id="load" name="load" onclick="loadRepo()">Load Local Repository</button><br>
-			<button id="folder" name="folder" onclick="loadFolder()">Load Folder</button><br>
-			<button id="loadR" name="loadR" onclick="checkIfRepo()">Check If Repo </button><br>
-			<button id="getGit" name="getGit" onclick="getGitContent()">Get Git Content</button><br>
-			<button id="getGitGraph" name="getGitGraph" onclick="getGitGraph()">Get Git Graph</button><br>
-		</nav>
+		<div id="parent-div">
+			<div id="nav" class="child-div">
+				<button id="load" name="load" onclick="loadRepo()">Load Local Repository</button><br>
+				<button id="folder" name="folder" onclick="loadFolder()">Load Folder</button><br>
+				<button id="loadR" name="loadR" onclick="checkIfRepo()">Check If Repo </button><br>
+				<button id="getGit" name="getGit" onclick="getGitContent()">Get Git Content</button><br>
+				<button id="getGitGraph" name="getGitGraph" onclick="getGitGraph()">Get Git Graph</button><br>
+			</div>
 
-		<div id="commit-section" class="sectionleft">
-			<p>Logs</p>
-			<ul id="commits">
+			<div id="commit-section" class="child-div">
+				<p>Logs</p>
+				<ul id="commits">
 
-			</ul>
+				</ul>
+			</div>
+
+			<div id="detail-section" class="child-div">
+				<p>Details</p>
+				<p id="commit-details"> </p>
+			</div>
 		</div>
 
-		<div id="detail-section" class="sectionright">
-			<p>Details</p>
-			<p id="commit-details"> </p>
-		</div>
 
 	</body>
 </html>

@@ -10,6 +10,7 @@
 // }
 
 var winston = require('winston');
+var hl = require('highlight').Highlight;
 
 var fs = require('fs');
 var exec = require('child-process-promise').exec;
@@ -96,20 +97,29 @@ function commitEventListeners() {
 }
 
 function showCommit(e) {
+	var gitWithDir = 'git --git-dir=' + globals.repoGitPath;
+	var showColor = ' show --color-words ';
 	var commitHash = e.target.attributes.id.value;
-	var command = 'git --git-dir=' + globals.repoGitPath + ' show ' + commitHash;
+	var convertToHTML = ' | ./ansi2html.sh';
+
+	//var command = 'git --git-dir=' + globals.repoGitPath + ' show ' + commitHash;
+	var command = gitWithDir + showColor + commitHash + convertToHTML;
+	winston.info(command);
+	
 	return exec(command, {maxBuffer: 1024 * 1024 * 1024})
 	.then(function (result) {
 		var stdout = result.stdout;
 		var stderr = result.stderr;
 
 		//return Promise.resolve(alert(stdout));
+		// git show --color-words  67192b439 | ./ansi2html.sh	
 		
-		document.getElementById("commit-details").innerHTML = stdout;
+		// var html = hl(stdout);
+		document.getElementById("detail-section").innerHTML = stdout;
 		return Promise.resolve();
 	})
 	.fail(function (error) {
-		winston.error('ERROR: ', error);
+		winston.error('ERROR: ', error, {});
 		return Promise.reject('failed');
 	});
 	// alert(e.target.attributes.id.value);
@@ -138,7 +148,7 @@ function getGitGraph() {
 				// TODO add clickable for each commit (to do various actions)
 				var listId = "id=" + "\"" + commitHash + "\" ";
 				var listOpen = "<li " + listId +  ">";
-				listLine = listOpen + line + "</li>";
+				listLine = listOpen + commitHash + "</li>";
 				full += listLine;
 			}
 		}

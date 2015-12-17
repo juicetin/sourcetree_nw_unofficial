@@ -20,6 +20,7 @@
     "bluebird": "^3.1.1",
     "child-process-promise": "^1.1.0",
     "fs": "0.0.2",
+    "highlight": "^0.2.4",
     "node-webkit": "0.0.0",
     "winston": "^2.1.1"
   }
