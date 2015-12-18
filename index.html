@@ -2,6 +2,14 @@
 <html>
 	<head>
 
+		<script type="text/javascript">
+			top.globals = {
+				// repoPath
+				// repoGitPath
+				// gitBaseCommand
+			};
+		</script>
+
 		<script src="./bower_components/gitgraph.js/src/gitgraph.js"></script>
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
 		<script src="./main.js"></script>
@@ -35,25 +43,44 @@
 		<br class="separator">
 
 		<div id="parent-div">
-			<div id="nav" class="child-div">
+			
+			<!-- Left branch bar section (currently not branches though lel) -->
+			<div id="branches" class="child-div">
 				<button id="load" name="load" onclick="loadRepo()">Load Local Repository</button><br>
 				<button id="folder" name="folder" onclick="loadFolder()">Load Folder</button><br>
-				<button id="loadR" name="loadR" onclick="checkIfRepo()">Check If Repo </button><br>
+				<button id="updateEnv" name="updateEnv" onclick="updateEnvironment()">Update Working Environment</button><br>
+
+				<!--
 				<button id="getGit" name="getGit" onclick="getGitContent()">Get Git Content</button><br>
-				<button id="getGitGraph" name="getGitGraph" onclick="getGitGraph()">Get Git Graph</button><br>
+				<button id="loadR" name="loadR" onclick="checkIfRepo()">Check If Repo </button><br>
+				-->
+
 			</div>
 
-			<div id="commit-section" class="child-div">
-				<p>Logs</p>
-				<ul id="commits">
+			<!-- Right hand side with everything else -->
+			<div id="right">
 
-				</ul>
+				<!-- Top commit section with graph/description/commit/author/date -->
+				<div id="commit-section" class="child-div">
+					<p>Logs</p>
+					<ul id="commits"></ul>
+				</div>
+
+				<!-- Bottom section with everything else -->
+				<div id="bottom">
+					<!-- Left -->
+					<div id="git-status">
+						<p>Status</p>
+					</div>
+
+					<!-- Right -->
+					<div id="detail-section" class="child-div">
+						<p>Details</p>
+						<p id="commit-details"> </p>
+					</div>
+				</div>
 			</div>
 
-			<div id="detail-section" class="child-div">
-				<p>Details</p>
-				<p id="commit-details"> </p>
-			</div>
 		</div>
 
 

@@ -1,7 +1,13 @@
 var winston = require('winston');
 
+/*
+ * Use top.globals.<etc> to access the global variables
+ */
+
 function commit() {
 	winston.info('commit git toolbar button called');
+	// winston.info(top.globals.repoGitPath)
+	
 }
 
 function checkout() {
