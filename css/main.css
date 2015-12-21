@@ -37,8 +37,8 @@ body {
 
 #commit-section {
 	height: 500px;
-	width: 15%;
-	max-width: 20%;
+	width: 75%;
+	max-widh: 20%;
 	display: inline-block;
 	vertical-align: top;
 	overflow: auto;

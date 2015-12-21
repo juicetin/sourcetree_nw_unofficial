@@ -12,15 +12,21 @@
 
 		<script src="./bower_components/gitgraph.js/src/gitgraph.js"></script>
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
-		<script src="./main.js"></script>
 		<link rel="stylesheet" type="text/css" href="css/gitgraph.css"/>
 		<link rel="stylesheet" type="text/css" href="css/main.css"/>
+		<script src="./main.js"></script>
 
 	</head>
 	<body>
 		<header>
-			<h3 id="titlebar">Git for Linux</h3>
+			<h2 id="titlebar">Git for Linux</h2>
 		</header>
+
+		<!-- Dialogs -->
+		<dialog id="no-repo">
+			<h3>Warning!</h3> 
+			No repository loaded yet.
+		</dialog>
 
 		<!-- BUTTONS -->
 		<div id="toolbar">
@@ -63,7 +69,9 @@
 				<!-- Top commit section with graph/description/commit/author/date -->
 				<div id="commit-section" class="child-div">
 					<p>Logs</p>
-					<ul id="commits"></ul>
+					<!-- <ul id="commits"></ul> -->
+					<table id="commits">
+					</table>
 				</div>
 
 				<!-- Bottom section with everything else -->
@@ -71,6 +79,7 @@
 					<!-- Left -->
 					<div id="git-status">
 						<p>Status</p>
+						<ul id="changed-files"></ul>
 					</div>
 
 					<!-- Right -->

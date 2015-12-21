@@ -1,11 +1,12 @@
 "use strict"
 
 class Commit {
-	constructor(sha, author, date, msg) {
-		this.sha = sha;
-		this.author = author;
-		this.date = date;
-		this.msg = msg;
+	constructor(commitProperties) {
+		this.sha = commitProperties.sha;
+		this.author = commitProperties.author;
+		this.date = commitProperties.date;
+		this.msg = commitProperties.msg;
+		this.merge = commitProperties.merge;
 	}
 }
 
@@ -29,7 +30,6 @@ function loadGitToolbarHandlers() {
 	for (var i = 0; i < gitToolbarButtons.length; ++i) {
 		if (gitToolbarButtons[i] != undefined) {
 			var objId = gitToolbarButtons[i].id;
-			winston.info(gitToolbarButtons[i].id);
 			gitToolbarButtons[i].addEventListener("click", gitToolbarHandlers[objId]);
 		}
 	}
@@ -134,6 +134,12 @@ function showCommit(e) {
  * 	git statuses (all modified/unstaged/delete/etc.)
  */
 function updateEnvironment() {
+
+	if (!top.globals.repoPath) {
+		document.getElementById("no-repo").showModal();
+		return Promise.resolve();
+	}
+
 	return getGitGraph()
 	.then(function() {
 		return commitEventListeners();
@@ -164,11 +170,23 @@ function getGitStatus() {
 		}
 
 		var modified = result.stdout;
-		var modifiedArr = modified.split("\n");
-		winston.info(modifiedArr);
-		document.getElementById("git-status").innerHTML = modifiedArr;
+		var modifiedList = modified.split("\n");
+
+		var modListLen = modifiedList.length;
+		if (modListLen > 1) {
+			var modifiedHTML = "";
+			for (var i = 0; i < modifiedList.length-1; ++i) {
+				modifiedHTML += "<li>" + modifiedList[i] + "</li>";
+			}
+			document.getElementById("changed-files").innerHTML = modifiedHTML;
+		} else {
+			var noChanges = "No modified, new, or unstaged files.";
+			document.getElementById("changed-files").innerHTML = noChanges;
+		}
+
+		// document.getElementById("git-status").innerHTML = modifiedArr;
 		// $("div.git-status").html("werafasdfasfd");
-		$("div.git-status").text("herpa derpa");
+		// $("div.git-status").text("herpa derpa");
 		return Promise.resolve();
 
 		// var HTMLstatusOutput = result.stdout;
@@ -238,17 +256,43 @@ function getGitGraph() {
 		
 		var stdoutParts = stdout.split("\n");
 		var full = "";
-
-		/* Retain only lines stating commit hash */
-		// TODO include other info such as author, date, etc.
+		// Commit
+		// Merage
+		// Author
+		// Date
+		var curCommit = {};
 		for (var line of stdoutParts) {
-			if (line.indexOf("commit") === 0) {
-				var commitHash = line.split(" ")[1].substring(0,6);
-				var listClass = " class=\"commit\" ";
-				var listId = "id=" + "\"" + commitHash + "\" ";
-				var listOpen = "<li " + listClass + listId +  ">";
-				var listLine = listOpen + commitHash + "</li>";
-				full += listLine;
+			line = line.trim();
+			var i = line.indexOf(" ");
+			var lineParts = [line.slice(0,i), line.slice(i+1)];
+			switch(lineParts[0]) {
+				case "commit":
+					// TODO add all commits to the commit info table
+					if (Object.keys(curCommit).length > 0) {
+						winston.info(curCommit);
+					}
+
+					curCommit.sha= lineParts[1].substring(0,6);
+					var listClass = " class=\"commit\" ";
+					var listId = "id=" + "\"" + curCommit.sha + "\" ";
+					var listOpen = "<tr " + listClass + listId +  ">";
+					var listLine = listOpen + curCommit.sha + "</tr>";
+					full += listLine;
+					break;
+				case "Author:":
+					curCommit.author = lineParts[1];
+					break;
+				case "Date:":
+					curCommit.date = lineParts[1];
+					break;
+				case "Merge:":
+					curCommit.merge = lineParts[1];
+					break;
+				default:
+					if (line.length > 0) {
+						curCommit.msg = line;
+					}
+					break;
 			}
 		}
 
