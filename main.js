@@ -10,6 +10,13 @@ class Commit {
 	}
 }
 
+var gui = require('nw.gui')
+// top.windows.commit= gui.Window.open('commit.html', {
+// 	"show": false
+// });
+top.windows.w = window.screen.availWidth;
+top.windows.h = window.screen.availHeight;
+
 var winston = require('winston');
 var hl = require('highlight').Highlight;
 
@@ -17,7 +24,9 @@ var fs = require('fs');
 var exec = require('child-process-promise').exec;
 var Promise = require('bluebird');
 
-var gitToolbarHandlers = require('./gitToolbarHandlers.js');
+var gitToolbarHandlers = require('./gitToolbarHandlers.js')({
+	gui: gui
+});
 
 // var top.globals = {};
 
@@ -140,7 +149,7 @@ function updateEnvironment() {
 		return Promise.resolve();
 	}
 
-	return getGitGraph()
+	return populateCommitTable()
 	.then(function() {
 		return commitEventListeners();
 	})
@@ -184,30 +193,7 @@ function getGitStatus() {
 			document.getElementById("changed-files").innerHTML = noChanges;
 		}
 
-		// document.getElementById("git-status").innerHTML = modifiedArr;
-		// $("div.git-status").html("werafasdfasfd");
-		// $("div.git-status").text("herpa derpa");
 		return Promise.resolve();
-
-		// var HTMLstatusOutput = result.stdout;
-
-		// var parts = HTMLstatusOutput.split("\n");
-		// var modified = [];
-		// for (var line of parts) {
-		// 	line = line.trim();
-
-		// 	// Get each type of modified file
-		// 	switch(line.split(" ")[0]) {
-		// 		case "modified:":
-		// 			modified.push(line.split(" ")[3]);
-		// 		default:
-		// 			break;
-		// 	}
-		// }
-		// winston.info('modified files: ', modified, {});
-
-		// document.getElementById("git-status").innerHTML = modified;
-		// return Promise.resolve();
 	})
 	.fail(function (error) {
 		winston.error('ERROR ', error, {});
@@ -215,34 +201,24 @@ function getGitStatus() {
 	});
 }
 
-// function getGitStatus() {
-// 	var command = 'git --git-dir=' + top.globals.repoGitPath + ' --work-tree=' + top.globals.repoPath + ' status';
-// 	winston.info('Running git command ', command, {});
-// 	return exec(command, {maxBuffer: 1024*1024*1024})
-// 	.then(function (result) {
-// 		var stderr = result.stderr;
-// 		if (stderr) {
-// 			winston.error(stderr);
-// 		}
-// 
-// 		var statusOutput = result.stdout;
-// 		var statusOutputLines = statusOutput.split("\n");
-// 		for (var line of statusOutputLines) {
-// 			winston.info(line);
-// 		}
-// 
-// 		document.getElementById("git-status").innerHTML()
-// 	})
-// 	.fail(function (error) {
-// 		winston.error('ERROR ', error, {});
-// 		return Promise.reject('failed');
-// 	});
-// }
+function generateCommitRow(options) {
+	var commitInfo = options.commitInfo;
+	var sha = "<td>" + commitInfo.sha + "</td>";
+	var msg = "<td>" + commitInfo.msg + "</td>";
+	var author = "<td>" + commitInfo.author + "</td>";
+	var date = "<td>" + commitInfo.date + "</td>";
+
+	var listClass = " class=\'commit\' ";
+	var listId = " id=" + "\'" + commitInfo.sha + "\' ";
+	var listOpen = "<tr " + listId + listClass + ">";
+	var listLine = listOpen + sha + msg + author + date + "</tr>";
+	return listLine;
+}
 
 /*
  * Generate commit list from stored global repository directory
  */
-function getGitGraph() {
+function populateCommitTable() {
 
 	/* Execute git log */
 	// var command = 'git --git-dir=' + top.globals.repoGitPath + ' --work-tree=' + top.globals.repoPath + ' log';
@@ -274,20 +250,12 @@ function getGitGraph() {
 					// When we hit a commit line and commit object is 
 					// populated (non-empty), add to row
 					if (Object.keys(curCommit).length > 0) {
-						curCommit.sha= lineParts[1].substring(0,6);
-
-						var sha = "<td>" + curCommit.sha + "</td>";
-						var msg = "<td>" + curCommit.msg + "</td>";
-						var author = "<td>" + curCommit.author + "</td>";
-						var date = "<td>" + curCommit.date + "</td>";
-
-						var listClass = " class=\'commit\' ";
-						var listId = " id=" + "\'" + curCommit.sha + "\' ";
-						var listOpen = "<tr " + listId + listClass + ">";
-						var listLine = listOpen + sha + msg + author + date + "</tr>";
-						winston.info(listLine);
-						full += listLine;
+						full += generateCommitRow({
+							commitInfo: curCommit,
+							lineParts: lineParts
+						});
 					}
+					curCommit.sha= lineParts[1].substring(0,6);
 					break;
 				case "Author:":
 					curCommit.author = lineParts[1];
@@ -299,7 +267,7 @@ function getGitGraph() {
 					curCommit.merge = lineParts[1];
 					break;
 				default:
-					if (line.length > 0) {
+					if (line.trim().length > 0) {
 						curCommit.msg = line;
 					}
 					break;
