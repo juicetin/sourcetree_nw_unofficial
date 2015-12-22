@@ -1,10 +1,100 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>Hello World!</title>
+
+		<script type="text/javascript">
+			top.globals = {
+				// repoPath
+				// repoGitPath
+				// gitBaseCommand
+			};
+		</script>
+
+		<script src="./bower_components/gitgraph.js/src/gitgraph.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="css/gitgraph.css"/>
+		<link rel="stylesheet" type="text/css" href="css/main.css"/>
+		<script src="./main.js"></script>
+
 	</head>
 	<body>
-		<h1>Hello World!</h1>
-		We are using node.js <script>document.write(process.version)</script>
+		<header>
+			<h2 id="titlebar">Git for Linux</h2>
+		</header>
+
+		<!-- Dialogs -->
+		<dialog id="no-repo">
+			<h3>Warning!</h3> 
+			No repository loaded yet.
+		</dialog>
+
+		<!-- BUTTONS -->
+		<div id="toolbar">
+			<ul id="git-toolbar">
+				<li id="commit" class="git-toolbar-btn"><a>Commit</a></li>
+				<li id="checkout" class="git-toolbar-btn"><a>Checkout</a></li>
+				<li id="reset" class="git-toolbar-btn"><a>Reset</a></li>
+				<li id="stash" class="git-toolbar-btn"><a>Stash</a></li>
+				<li id="add" class="git-toolbar-btn"><a>Add</a></li>
+				<li id="remove" class="git-toolbar-btn"><a>Remove</a></li>
+				<li id="addRemove" class="git-toolbar-btn"><a>Add/Remove</a></li>
+				<li id="fetch" class="git-toolbar-btn"><a>Fetch</a></li>
+				<li id="pull" class="git-toolbar-btn"><a>Pull</a></li>
+				<li id="push" class="git-toolbar-btn"><a>Push</a></li>
+				<li id="branch" class="git-toolbar-btn"><a>Branch</a></li>
+				<li id="merge" class="git-toolbar-btn"><a>Merge</a></li>
+				<li id="tag" class="git-toolbar-btn"><a>Tag</a></li>
+			</ul>
+		</div>
+		<br class="separator">
+
+		<div id="parent-div">
+			
+			<!-- Left branch bar section (currently not branches though lel) -->
+			<div id="branches" class="child-div">
+				<button id="load" name="load" onclick="loadRepo()">Load Local Repository</button><br>
+				<button id="folder" name="folder" onclick="loadFolder()">Load Folder</button><br>
+				<button id="updateEnv" name="updateEnv" onclick="updateEnvironment()">Update Working Environment</button><br>
+
+				<!--
+				<button id="getGit" name="getGit" onclick="getGitContent()">Get Git Content</button><br>
+				<button id="loadR" name="loadR" onclick="checkIfRepo()">Check If Repo </button><br>
+				-->
+
+			</div>
+
+			<!-- Right hand side with everything else -->
+			<div id="right">
+
+				<!-- Top commit section with graph/description/commit/author/date -->
+				<div id="commit-section" class="child-div">
+					<p>Logs</p>
+					<!-- <ul id="commits"></ul> -->
+					<table id="commits"></table>
+				</div>
+
+				<!-- Bottom section with everything else -->
+				<div id="bottom">
+					<!-- Left -->
+					<div id="git-status">
+						<p>Status</p>
+						<ul id="changed-files"></ul>
+					</div>
+
+					<!-- Right -->
+					<div id="detail-section" class="child-div">
+						<p>Details</p>
+						<p id="commit-details"> </p>
+					</div>
+				</div>
+			</div>
+
+		</div>
+
+
+		<div class="footer">
+			Placeholder
+		</div>
+
 	</body>
 </html>

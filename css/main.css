@@ -1,0 +1,115 @@
+header {
+	background-color: black;
+	color: white;
+	vertical-align: middle;
+	text-align: center;
+	height: 35px;
+}
+
+body {
+	background-color: #cccccc;
+}
+
+#titlebar {
+	vertical-align: middle;
+	height: 0px;
+}
+
+#toolbar {
+	background-color: #CCCCCC;
+	height:40px;
+}
+
+.separator {
+	clear: both;
+}
+
+#branches {
+	float: left;
+	background: #eeeeee;
+	height: 850px;
+	width: 15%;
+	vertical-align: top;
+	resize: horizontal;
+	overflow: auto;
+	display: inline-block;
+}
+
+#commit-section {
+	height: 500px;
+	width: 75%;
+	display: inline-block;
+	vertical-align: top;
+	overflow: auto;
+	resize: horizontal;
+}
+
+#detail-section {
+	height: 350px;
+	width: 50%;
+	display: inline-block;
+	vertical-align: top;
+	overflow: auto;
+	background-color: #DDD;
+	padding: 10px;
+	resize: horizontal;
+	max-width: 55%;
+	min-width: 300px;
+}
+
+.footer {
+	background-color: #000000;
+	color: white;
+	clear: both;
+	vertical-align: bottom;
+	padding: 5px;
+	height:15px;
+}
+
+#git-toolbar {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	background-color: #333;
+}
+
+#git-status {
+	background-color: #CCC;
+	float: left;
+	width: 25%;
+	overflow: auto;
+	padding: 10px;
+	height: 350;
+}
+
+.git-toolbar-btn {
+	float: left;
+	display: inline-block;
+	color: white;
+	text-align: center;
+	text-decoration: none; 
+	padding: 14px 16px;
+} 
+
+.git-toolbar-btn-disabled {
+	float: left;
+	display: inline-block;
+	color: grey;
+	text-align: center;
+	text-decoration: none; 
+	padding: 14px 16px;
+}
+
+li a:hover {
+	background-color: #111;
+}
+
+.commit {
+	list-style-type: none;
+}
+
+clearBoth {
+	clear: both;
+}
+
