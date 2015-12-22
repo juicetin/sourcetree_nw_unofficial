@@ -100,7 +100,7 @@ function showCommit(e) {
 
 	// Build command to show a commit
 	var showColor = ' show --color-words ';
-	var commitHash = e.target.attributes.id.value;
+	var commitHash = $(this).attr('id');
 	var convertToHTML = ' | ./ansi2html.sh';
 
 	var command = top.globals.gitBaseCommand + 
@@ -118,7 +118,7 @@ function showCommit(e) {
 		}
 		
 		var HTMLcommitOutput = result.stdout;
-		document.getElementById("detail-section").innerHTML = HTMLcommitOutput;
+		$( "#commit-details" ).html(HTMLcommitOutput);
 		return Promise.resolve();
 	})
 	.fail(function (error) {
@@ -255,7 +255,11 @@ function getGitGraph() {
 		var stderr = result.stderr;
 		
 		var stdoutParts = stdout.split("\n");
-		var full = "";
+		var full = "<tr>"+
+			"<th>Commit</th>"+
+			"<th>Message</th>"+
+			"<th>Author</th>"+
+			"<th>Date</th>";
 		// Commit
 		// Merage
 		// Author
@@ -267,17 +271,23 @@ function getGitGraph() {
 			var lineParts = [line.slice(0,i), line.slice(i+1)];
 			switch(lineParts[0]) {
 				case "commit":
-					// TODO add all commits to the commit info table
+					// When we hit a commit line and commit object is 
+					// populated (non-empty), add to row
 					if (Object.keys(curCommit).length > 0) {
-						winston.info(curCommit);
-					}
+						curCommit.sha= lineParts[1].substring(0,6);
 
-					curCommit.sha= lineParts[1].substring(0,6);
-					var listClass = " class=\"commit\" ";
-					var listId = "id=" + "\"" + curCommit.sha + "\" ";
-					var listOpen = "<tr " + listClass + listId +  ">";
-					var listLine = listOpen + curCommit.sha + "</tr>";
-					full += listLine;
+						var sha = "<td>" + curCommit.sha + "</td>";
+						var msg = "<td>" + curCommit.msg + "</td>";
+						var author = "<td>" + curCommit.author + "</td>";
+						var date = "<td>" + curCommit.date + "</td>";
+
+						var listClass = " class=\'commit\' ";
+						var listId = " id=" + "\'" + curCommit.sha + "\' ";
+						var listOpen = "<tr " + listId + listClass + ">";
+						var listLine = listOpen + sha + msg + author + date + "</tr>";
+						winston.info(listLine);
+						full += listLine;
+					}
 					break;
 				case "Author:":
 					curCommit.author = lineParts[1];
@@ -297,7 +307,8 @@ function getGitGraph() {
 		}
 
 		/* Set the appropriate section to hold commits */
-		document.getElementById("commits").innerHTML = full;
+		//document.getElementById("commits").innerHTML = full;
+		$( '#commits' ).html(full);
 		return Promise.resolve();
 	})
 	.fail(function (error) {
