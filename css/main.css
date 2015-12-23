@@ -62,7 +62,7 @@ body {
 	color: white;
 	clear: both;
 	vertical-align: bottom;
-	padding: 5px;
+	padding: 2px;
 	height:15px;
 }
 
@@ -81,6 +81,10 @@ body {
 	overflow: auto;
 	padding: 10px;
 	height: 350;
+}
+
+.files {
+	list-style-type: none;
 }
 
 .git-toolbar-btn {

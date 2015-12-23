@@ -4,6 +4,7 @@
   "description": "hack day project (maybe not by the time you're viewing this) to create a linux desktop version of SourceTree",
   "main": "index.html",
   "scripts": {
+    "start": "nw .",
     "test": "npm test"
   },
   "repository": {
@@ -19,17 +20,18 @@
   "dependencies": {
     "bluebird": "^3.1.1",
     "child-process-promise": "^1.1.0",
+    "collections": "^1.2.4",
     "fs": "0.0.2",
     "highlight": "^0.2.4",
     "node-webkit": "0.0.0",
     "winston": "^2.1.1"
   },
   "window": {
-	"title": "Linux Git Client",
-	"frame": false,
-	"toolbar": false,
-	"resizable": false,
-	"width": 1200,
-	"height":1000
+    "title": "Linux Git Client",
+    "frame": false,
+    "toolbar": false,
+    "resizable": false,
+    "width": 1900,
+    "height":1100 
   }
 }

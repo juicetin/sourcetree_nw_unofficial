@@ -4,6 +4,13 @@ var winston = require('winston');
  * Use top.globals.<etc> to access the global variables
  */
 
+/*
+ * commands
+ * git reset HEAD <filename> - unstages a file for the upcoming commit
+ * git diff --staged --name-only - lists (new since last commit) staged files, name only
+ * git diff --staged - lists staged files with all changes
+ */
+
 function factory(options) {
 
 	var windowOptions = {
@@ -17,6 +24,7 @@ function factory(options) {
 	var gui = options.gui;
 
 	function commit() {
+		winston.info(window.top.globals.stagedFiles);
 		winston.info('commit git toolbar button called');
 
 		// Close window if it is already open

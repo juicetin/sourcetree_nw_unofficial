@@ -8,9 +8,8 @@
 				// repoGitPath
 				// gitBaseCommand
 			};
-			top.windows = {
-				// commit
-			};
+			top.globals.stagedFiles = {};
+			top.windows = {	};
 		</script>
 
 		<script src="./bower_components/gitgraph.js/src/gitgraph.js"></script>
@@ -58,7 +57,6 @@
 				<button id="load" name="load" onclick="loadRepo()">Load Local Repository</button><br>
 				<button id="folder" name="folder" onclick="loadFolder()">Load Folder</button><br>
 				<button id="updateEnv" name="updateEnv" onclick="updateEnvironment()">Update Working Environment</button><br>
-
 				<!--
 				<button id="getGit" name="getGit" onclick="getGitContent()">Get Git Content</button><br>
 				<button id="loadR" name="loadR" onclick="checkIfRepo()">Check If Repo </button><br>
@@ -81,7 +79,17 @@
 					<!-- Left -->
 					<div id="git-status">
 						<p>Status</p>
-						<ul id="changed-files"></ul>
+						<p>Staged files</p>
+						<!-- Staged files -->
+						<div id="staged-files">
+							<ul id="staged-files-list"></ul>
+						</div>
+
+						<p>Unstaged files</p>
+						<!-- Unstaged files -->
+						<div id="unstaged-files">
+							<ul id="unstaged-files-list"></ul>
+						</div>
 					</div>
 
 					<!-- Right -->
@@ -96,7 +104,7 @@
 
 
 		<div class="footer">
-			Placeholder
+			Last command ran: 
 		</div>
 
 	</body>
