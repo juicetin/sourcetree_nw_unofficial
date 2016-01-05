@@ -1,14 +1,14 @@
-// "use strict"
-// 
-// class Commit {
-// 	constructor(commitProperties) {
-// 		this.sha = commitProperties.sha;
-// 		this.author = commitProperties.author;
-// 		this.date = commitProperties.date;
-// 		this.msg = commitProperties.msg;
-// 		this.merge = commitProperties.merge;
-// 	}
-// }
+"use strict"
+
+class Commit {
+	constructor(commitProperties) {
+		this.sha = commitProperties.sha;
+		this.author = commitProperties.author;
+		this.date = commitProperties.date;
+		this.msg = commitProperties.msg;
+		this.merge = commitProperties.merge;
+	}
+}
 
 var gui = require('nw.gui')
 global.windows.w = window.screen.availWidth;
@@ -22,6 +22,7 @@ var fs = require('fs');
 var Promise = require('bluebird');
 
 var Git = require('./src/js/git.js');
+global.Git = Git; // Hacky - but nwjs require is broken, can't include from other directories
 
 var gitToolbarHandlers = require('./src/js/gitToolbarHandlers.js')({gui: gui});
 
@@ -189,10 +190,44 @@ function escapePeriods (str) {
 // }
 
 /*
+ *	Removes a git status item
+ *
+ *	@param {String} elementId - the DOM element id, also the filename
+ */
+function removeGitStatusFile(elementId) {
+	$('#' + elementId).next('label').remove();
+	$('#' + elementId).next('br').remove();
+	$('#' + elementId).remove();
+}
+
+/*
+ *	Builds the HTML for the file status section given a particular element id
+ *
+ *	@param {String} elementId
+ *	@param {Boolean} setupStagedFiles - whether function was called during setup
+ *	@return {String} the resulting HTML string
+ */
+function buildGitStatusFileHTML(elementId, setupStagedFiles) {
+	var html = "<input id=\""+ 
+				elementId +
+				"\" type=\"checkbox\" onchange=\"toggleFileCheckbox(this)\" ";
+
+	if (setupStagedFiles) {
+		html += "class=\"staged-files\" ";
+	}
+
+	html += "value=\"" + elementId + "\">" +
+			"<label for=\"" + elementId + "\">" + 
+			elementId + "</label><br>";
+	return html;
+}
+
+/*
  *	Marks a file as staged and adds it to the global staged list,
  *	as well as moving the visual elemennt itself into the staged
  *	checkbock list, and has it 'marked' once moved
- *	@param {Object} the element that was clicked (whether checked
+ *
+ *	@param {Object} element - the element that was clicked (whether checked
  *		or unchecked)
  */
 function toggleFileCheckbox(element) {
@@ -203,24 +238,17 @@ function toggleFileCheckbox(element) {
 		
 		// Remove the file from the global staged file dict
 		winston.info('unselected ', element.id, {});
-		//delete glbl.stagedFiles[element.id];
-		Git.removeStagedFile(element.id);
+		return Git.removeStagedFile(element.id)
+		.then(function() {
+			// Remove item from staged list
+			var elementId = escapePeriods(element.id);
+			removeGitStatusFile(elementId);
 
-		// Remove item from staged list
-		$('#' + escapePeriods(element.id)).next('label').remove();
-		$('#' + escapePeriods(element.id)).next('br').remove();
-		$('#' + escapePeriods(element.id)).remove();
-
-		// Add file to the unstaged list, and leave unchecked (the box)
-		var modifiedHTML = "";
-		modifiedHTML += "<input id=\""+ 
-					    element.id +
-					 	"\" type=\"checkbox\" onchange=\"toggleFileCheckbox(this)\" " + 
-						"value=\"" + element.id + "\">" +
-						"<label for=\"" + element.id + "\">" + 
-						element.id + "</label><br>";
-		$('#unstaged-files-list').append(modifiedHTML);
-
+			// Add file to the unstaged list, and leave unchecked (the box)
+			var modifiedHTML = buildGitStatusFileHTML(element.id);
+			$('#unstaged-files-list').append(modifiedHTML);
+			return Promise.resolve();
+		});
 	} 
 	
 	// If the element is checked
@@ -228,77 +256,61 @@ function toggleFileCheckbox(element) {
 
 		// Add the file to the global staged file dict
 		winston.info('selected ', element.id, {});
-		//glbl.stagedFiles[element.id] = 1;
-		Git.addStagedFile(element.id);
+		return Git.addStagedFile(element.id)
+		.then(function () {
 
-		// Remove item from the unstaged list
-		$('#' + escapePeriods(element.id)).next('label').remove();
-		$('#' + escapePeriods(element.id)).next('br').remove();
-		$('#' + escapePeriods(element.id)).remove();
+			// Remove item from the unstaged list
+			var elementId = escapePeriods(element.id);
+			removeGitStatusFile(elementId);
 
-		// Add file to the staged list, and check it (the box)
-		var modifiedHTML = "";
-		modifiedHTML += "<input id=\""+ 
-					    element.id +
-					 	"\" type=\"checkbox\" onchange=\"toggleFileCheckbox(this)\" " + 
-						"value=\"" + element.id + "\">" +
-						"<label for=\"" + element.id + "\">" + 
-						element.id + "</label><br>";
-		$('#staged-files-list').append(modifiedHTML);
-		$('#' + escapePeriods(element.id)).attr('checked', true);
-	
+			// Add file to the staged list, and check it (the box)
+			var modifiedHTML = buildGitStatusFileHTML(element.id);
+			$('#staged-files-list').append(modifiedHTML);
+
+			// Mark checkboxes as ticked when moved into staged list
+			$('#' + escapePeriods(element.id)).attr('checked', true);
+			return Promise.resolve();
+		});
 	}
 }
 
 /*
- * Get status of the repository
- * 	unstaged files
- * 	modified files
- * 	deleted files
- * 	???
+ * 	Get status of the repository; populate the list of staged/unstaged files
  */
 function getGitStatus() {
 
 	// Unstaged list
 	return Git.updateUntrackedFileList()
 	.then(function () {
-
 		var untrackedFileList = Git.getUntrackedFileList();
 		var modListLen = untrackedFileList.length;
+		winston.info(untrackedFileList);
 
-		if (modListLen > 1) {
-			var modifiedHTML = "";
-			for (var i = 0; i < untrackedFileList.length-1; ++i) {
-				modifiedHTML += "<input id=\""+ 
-							    untrackedFileList[i] +
-							 	"\" type=\"checkbox\" onchange=\"toggleFileCheckbox(this)\" " + 
-								"value=\"" + untrackedFileList[i] + "\">" +
-								"<label for=\"" + untrackedFileList[i] + "\">" + 
-								untrackedFileList[i] + "</label><br>";
-			}
+		//winston.info('got here');
 
-			// Repopulate unstaged file list
-			$('#unstaged-files-list').html(modifiedHTML);
+		var modifiedHTML = "";
+		// for (var i = 0; i < untrackedFileList.length-1; ++i) {
+		for (var file in untrackedFileList) {
+			modifiedHTML += buildGitStatusFileHTML(file);
 		}
+
+		// Repopulate unstaged file list
+		$('#unstaged-files-list').html(modifiedHTML);
 
 		return Promise.resolve();
 	})
 	.then(function() {
-		return Git.getFilesToBeCommitted();
+		return Git.updateFilesToBeCommitted();
 	})
-	.then(function(filesToBeCommitted) {
-		//TODO much code repetition
+	.then(function() {
+
+		var filesToBeCommitted = global.stagedFiles;
+
 		var toBeCommittedHTML = "";
-		filesToBeCommitted.forEach(function (file) {
-			toBeCommittedHTML +=
-				"<input id=\""+
-				file +
-				"\" type=\"checkbox\" onchange=\"toggleFileCheckbox(this)\" " + 
-				"class=\"staged-files\" " +
-				"value=\"" + file + "\">" +
-				"<label for=\"" + file + "\">" + 
-				file + "</label><br>";
-		})
+		//filesToBeCommitted.forEach(function (file) {
+		for (var file in filesToBeCommitted) {
+			toBeCommittedHTML += buildGitStatusFileHTML(file, true);
+		}
 
 		$('#staged-files-list').html(toBeCommittedHTML);
 		$('.staged-files').attr('checked', true);
@@ -318,7 +330,6 @@ function generateCommitRow(commitInfo) {
 	var msg = "<td>" + commitInfo.msg + "</td>";
 	var author = "<td>" + commitInfo.author + "</td>";
 	var date = "<td>" + commitInfo.date + "</td>";
-
 	var listClass = " class=\'commit\' ";
 	var listId = " id=" + "\'" + commitInfo.sha + "\' ";
 	var listOpen = "<tr " + listId + listClass + ">";

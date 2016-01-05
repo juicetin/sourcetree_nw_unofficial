@@ -24,6 +24,7 @@
     "fs": "0.0.2",
     "highlight": "^0.2.4",
     "node-webkit": "0.0.0",
+    "requirejs": "^2.1.22",
     "winston": "^2.1.1"
   },
   "window": {
@@ -32,6 +33,6 @@
     "toolbar": false,
     "resizable": false,
     "width": 1900,
-    "height":1100 
+    "height": 1100
   }
 }

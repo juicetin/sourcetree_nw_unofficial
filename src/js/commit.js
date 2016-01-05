@@ -1,5 +1,7 @@
 "use strict"
 
+var Git = global.Git;
+
 $(document).ready(function() {
 	showFiles();
 	registerCommitBtn();
@@ -22,11 +24,13 @@ function showFiles() {
  */
 function registerCommitBtn() {
 	$('#commit-btn').click(function() {
-		test();
+		var commitMessage = $('#commit-message').val();
+		Git.commit(commitMessage);
 	});
 }
 
 function test() {
-	var txt = $('#commit-message').val();
+	var commitMessage = $('#commit-message').val();
 	$('#herpy').html(txt);
+	Git.commit();
 }

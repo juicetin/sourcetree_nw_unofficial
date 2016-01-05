@@ -3,6 +3,13 @@ var exec = require('child-process-promise').exec;
 var Git = module.exports;
 var Promise = require('bluebird');
 
+/*
+ *	Sets the repo path, git path folder inside the repo,
+ *	and the base git command stating git directory and work tree
+ *	(because otherwise weird shit happens)
+ *
+ *	@param {String} path to the repo directory
+ */
 Git.setRepoPath = function(path) {
 	global.repoPath = path;
 	winston.info('global repo path now: ', global.repoPath, {});
@@ -16,6 +23,11 @@ Git.setRepoPath = function(path) {
 	global.folderSelected = true;
 }
 
+/*
+ *	Gets the console output of git 'showing' a particular commit
+ *
+ *	@param {String} commitHash - SHA hash
+ */
 Git.commitCodeOutput = function(commitHash) {
 	var showColor = ' show --color-words ';
 	var convertToHTML = ' | src/ansi2html.sh';
@@ -28,9 +40,14 @@ Git.commitCodeOutput = function(commitHash) {
 	return exec(command, {maxBuffer: 1024 * 1024 * 1024});
 }
 
+/*
+ *	Updates the global untracked file list - includes both files that haven't
+ *	been added before, and files that have been modified since last commit, etc.
+ */
 Git.updateUntrackedFileList = function() {
 	// var command = global.gitBaseCommand + ' ls-files -m';
-	var command = global.gitBaseCommand + ' ls-files --others --exclude-standard ';
+	//var command = global.gitBaseCommand + ' ls-files --others --exclude-standard ';
+	var command = global.gitBaseCommand + ' diff --name-only ';
 
 	return exec(command, {maxBuffer: 1024 * 1024 * 1024})
 	.then(function (result) {
@@ -44,16 +61,29 @@ Git.updateUntrackedFileList = function() {
 		// Store list of modified files globally
 		var modified = result.stdout;
 		var modifiedList = modified.split("\n");
-		global.modified = modifiedList;
+		modifiedList.pop();
+		winston.info(modifiedList);
+		// global.modified = modifiedList;
+		modifiedList.forEach(function (file) {
+			global.modified[file] = 1;
+		});
 
 		return Promise.resolve();
 	});
 }
 
+/*
+ *	Gets the global list of untracked files
+ *
+ *	@return the nested 'object list' of all untracked files
+ */
 Git.getUntrackedFileList = function() {
 	return global.modified;
 }
 
+/*
+ *	Gets the output of the 'git log' command
+ */
 Git.getLog = function() {
 	var command = global.gitBaseCommand + ' log';
 	return exec(command)
@@ -67,30 +97,48 @@ Git.getLog = function() {
 	});
 }
 
+/*
+ *	Gets the repo path
+ *
+ *	@return the global repo path
+ */
 Git.getRepoPath = function() {
 	return global.repoPath;
 }
 
+/*
+ *	Removes/resets the status of an otherwise staged file
+ *
+ *	@param {String} elementId - also simply the 'directory/name' of the file being unstaged
+ */
 Git.removeStagedFile = function(elementId) {
-	//TODO actually git reset HEAD <file>
 	var command = global.gitBaseCommand + ' reset HEAD ' + global.repoPath + '/' + elementId;
-	exec(command);
-	delete global.stagedFiles[elementId];
+	return exec(command)
+	.then(function() {
+		delete global.stagedFiles[elementId];
+	});
 }
 
+/*
+ *	Stages an otherwise non-staged file
+ *
+ *	@param {String} elementId - simply the 'directory/name' of the file being unstaged
+ */
 Git.addStagedFile = function(elementId) {
-	//TODO actually git add <file>
 	var command = global.gitBaseCommand + ' add ' + global.repoPath + '/' + elementId;
 	winston.info(command);
-	exec(command);
-	global.stagedFiles[elementId] = 1;
+	return exec(command)
+	.then(function () {
+		global.stagedFiles[elementId] = 1;
+		return Promise.resolve();
+	});
 }
 
 /*
  *	Get the list of files to be committed
  */
-Git.getFilesToBeCommitted = function() {
-	var command = global.gitBaseCommand + ' diff HEAD --name-only ';
+Git.updateFilesToBeCommitted = function() {
+	var command = global.gitBaseCommand + ' diff --cached --name-only ';
 	return exec(command)
 	.then(function (result) {
 		var stdout = result.stdout;
@@ -98,6 +146,40 @@ Git.getFilesToBeCommitted = function() {
 
 		var files = stdout.split("\n");
 		files.pop();
-		return Promise.resolve(files);
+
+		for (var file of files) {
+
+			// If file is already modified, ignore the fact that there is
+			// a semi-staged file so the file doesn't double up in both lists
+			if (!global.modified[file]) {
+				global.stagedFiles[file] = 1;
+			}
+		}
+
+		return Promise.resolve();
 	});
+}
+
+/*
+ *	Commits all currently tracked files
+ *
+ *	@param {String} Commit message
+ */
+Git.commit = function(message) {
+	var command = global.gitBaseCommand + ' commit -m \"' + message + "\"";
+	winston.info('About to execute command:\n', command, {});
+	return exec(command)
+	.then(function (result) {
+		var stdout = result.stdout;
+		var stderr = result.stderr;
+
+		winston.info(stdout);
+		//Stuff?
+		
+		return Promise.resolve();
+	});
+}
+
+Git.test = function() {
+	winston.info('aw;elfkas;dlcmjsad;f');
 }
