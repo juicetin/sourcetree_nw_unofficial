@@ -1,60 +1,71 @@
-"use strict"
-
-class Commit {
-	constructor(commitProperties) {
-		this.sha = commitProperties.sha;
-		this.author = commitProperties.author;
-		this.date = commitProperties.date;
-		this.msg = commitProperties.msg;
-		this.merge = commitProperties.merge;
-	}
-}
+// "use strict"
+// 
+// class Commit {
+// 	constructor(commitProperties) {
+// 		this.sha = commitProperties.sha;
+// 		this.author = commitProperties.author;
+// 		this.date = commitProperties.date;
+// 		this.msg = commitProperties.msg;
+// 		this.merge = commitProperties.merge;
+// 	}
+// }
 
 var gui = require('nw.gui')
-// top.windows.commit= gui.Window.open('commit.html', {
-// 	"show": false
-// });
-top.windows.w = window.screen.availWidth;
-top.windows.h = window.screen.availHeight;
+global.windows.w = window.screen.availWidth;
+global.windows.h = window.screen.availHeight;
 
 var winston = require('winston');
 var hl = require('highlight').Highlight;
 var Set = require('collections/set');
 
 var fs = require('fs');
-var exec = require('child-process-promise').exec;
 var Promise = require('bluebird');
 
-var gitToolbarHandlers = require('./gitToolbarHandlers.js')({
-	gui: gui
-});
+var Git = require('./src/js/git.js');
 
-// var top.globals = {};
+var gitToolbarHandlers = require('./src/js/gitToolbarHandlers.js')({gui: gui});
 
 $( document ).ready(function() {
 	loadGitToolbarHandlers();
 });
 
+/*
+ *	Attach click events to each toolbar button i.e.
+ *		commit, checkout, branch, etc., where each
+ *		will open a new window for the user to 
+ *		perform the necessary operations
+ */
 function loadGitToolbarHandlers() {
+
+	// Cycle through all buttons with the git toolbar button class
 	var gitToolbarButtons = document.getElementsByClassName("git-toolbar-btn");
 	for (var i = 0; i < gitToolbarButtons.length; ++i) {
+
+		// If the button exists
 		if (gitToolbarButtons[i] != undefined) {
+
+			// Assign the handler function of the same name
 			var objId = gitToolbarButtons[i].id;
 			gitToolbarButtons[i].addEventListener("click", gitToolbarHandlers[objId]);
 		}
 	}
+
 	return Promise.resolve();
 }
 
+/*
+ *	Check if the repo path provided is an actual git repo
+ */
 function checkIfRepo() {
-	while (top.globals.repoPath === undefined) {}
-	var files = fs.readdirSync(top.globals.repoPath).forEach(function (file) {
+	var repoPath = Git.getRepoPath();
+	while (repoPath === undefined) {}
+	var files = fs.readdirSync(repoPath).forEach(function (file) {
 		winston.info(file);
 	});
 }
 
 /* 
- * Load a git repo locally (broken)
+ * 	Load a git repo locally (broken)
  */
 function loadRepo() {
 	return loadFolder()
@@ -63,33 +74,25 @@ function loadRepo() {
 	})
 	.then(function (isRepo) {
 		if (isRepo) {
-			console.log('is repo');
+			winston.info('is repo');
 		} else {
-			console.log('isnt repo');
+			winston.info('isnt repo');
 		}
 		return Promise.resolve();
 	});
 }
 
 /*
- * Load a git repo folder path into the global vars
+ * 	Load a git repo folder path into the global vars
  */
 function loadFolder() {
+
+	// Generate folder choosing popup
 	var chooser = document.createElement('input');
-	var unprocessedFolderSelectionString;
 	chooser.setAttribute('type', 'file');
 	chooser.setAttribute('nwdirectory', 'true');
 	chooser.addEventListener('change', function (evt) {
-		top.globals.repoPath= this.value;
-		winston.info('global repo path now: ', top.globals.repoPath, {});
-
-		top.globals.repoGitPath = top.globals.repoPath + '/.git/';
-		winston.info('global repo git path now: ', top.globals.repoGitPath, {});
-
-		top.globals.gitBaseCommand = 'git --git-dir=' + top.globals.repoGitPath +
-									 ' --work-tree=' + top.globals.repoPath + ' ';
-		winston.info('global base repo git command now: ', top.globals.gitBaseCommand, {});
-		top.globals.folderSelected = true;
+		Git.setRepoPath(this.value);
 	}, false);
 
 	chooser.click();
@@ -97,7 +100,7 @@ function loadFolder() {
 }
 
 /*
- * Attach all event listeners to commit entries
+ * 	Attach all event listeners to commit entries
  */
 function commitEventListeners() {
 	winston.info('Attempting to commit all listeners');
@@ -112,23 +115,13 @@ function commitEventListeners() {
 }
 
 /*
- * Show all changes/etc. for a particular commit
+ * 	Show all changes/etc. for a particular commit
  */
 function showCommit(e) {
-
-	// Build command to show a commit
-	var showColor = ' show --color-words ';
-	var commitHash = $(this).attr('id');
-	var convertToHTML = ' | ./ansi2html.sh';
-
-	var command = top.globals.gitBaseCommand + 
-				  showColor + 
-				  commitHash + 
-				  convertToHTML;
-	winston.info('The following bash command is being run and output captured: ', command);
 	
 	// Capture output from command
-	return exec(command, {maxBuffer: 1024 * 1024 * 1024})
+	var commitHash = $(this).attr('id');
+	return Git.commitCodeOutput(commitHash)
 	.then(function (result) {
 		var stderr = result.stderr;
 		if (stderr) {
@@ -146,36 +139,62 @@ function showCommit(e) {
 }
 
 /*
- * Update environment with everything:
- * 	commit list (to-be-graph)
- * 	commit event listeners
- * 	git statuses (all modified/unstaged/delete/etc.)
+ * 	Update environment with everything:
+ * 	  commit list (to-be-graph)
+ * 	  commit event listeners
+ * 	  git statuses (all modified/unstaged/delete/etc.)
  */
 function updateEnvironment() {
 
-	if (!top.globals.repoPath) {
+	// No modifying action if no repo loaded yet
+	if (!Git.getRepoPath()) {
 		document.getElementById("no-repo").showModal();
 		return Promise.resolve();
 	}
 
+	// Get lists of commits
 	return populateCommitTable()
+
+	// Bind each commit click action to commit code
 	.then(function() {
 		return commitEventListeners();
 	})
+
+	// Load repo status data (un/tracked files, etc.)
 	.then(function() {
 		return getGitStatus();
 	});
 }
 
-// Escape periods and forward slashes
-// when dealing with DOM manipulation 
-// for elements with id's containing them
+/* 	Escape periods and forward slashes
+ * 	when dealing with DOM manipulation 
+ * 	for elements with id's containing them
+ */
 function escapePeriods (str) {
 	str = str.replace('.', '\\.');
 	str = str.replace(/\//g, '\\/');
 	return str;
 }
 
+// {
+// 	input: {
+// 		id: element.id,
+// 		type: 'checkbox',
+// 		onchange: 'toggleFileCheckbox(this)',
+// 		value: element.id,
+// 		label: {
+// 			for: element.id
+// 		}
+// 	}
+// }
+
+/*
+ *	Marks a file as staged and adds it to the global staged list,
+ *	as well as moving the visual elemennt itself into the staged
+ *	checkbock list, and has it 'marked' once moved
+ *	@param {Object} the element that was clicked (whether checked
+ *		or unchecked)
+ */
 function toggleFileCheckbox(element) {
 	// TODO re-sort files after each transfer
 
@@ -184,7 +203,8 @@ function toggleFileCheckbox(element) {
 		
 		// Remove the file from the global staged file dict
 		winston.info('unselected ', element.id, {});
-		delete top.globals.stagedFiles[element.id];
+		//delete glbl.stagedFiles[element.id];
+		Git.removeStagedFile(element.id);
 
 		// Remove item from staged list
 		$('#' + escapePeriods(element.id)).next('label').remove();
@@ -208,7 +228,8 @@ function toggleFileCheckbox(element) {
 
 		// Add the file to the global staged file dict
 		winston.info('selected ', element.id, {});
-		top.globals.stagedFiles[element.id] = 1;
+		//glbl.stagedFiles[element.id] = 1;
+		Git.addStagedFile(element.id);
 
 		// Remove item from the unstaged list
 		$('#' + escapePeriods(element.id)).next('label').remove();
@@ -237,44 +258,50 @@ function toggleFileCheckbox(element) {
  * 	???
  */
 function getGitStatus() {
-	// var statusColorToHTML = ' -c color.status=always status | ./ansi2html.sh';
 
-	// var command = gitWithDir + workTree + ' status';
-	var command = top.globals.gitBaseCommand + ' ls-files -m';
+	// Unstaged list
+	return Git.updateUntrackedFileList()
+	.then(function () {
 
-	return exec(command, {maxBuffer: 1024 * 1024 * 1024})
-	.then(function (result) {
-		var stderr = result.stderr;
-		if (stderr) {
-			winston.error(stderr);
-		}
+		var untrackedFileList = Git.getUntrackedFileList();
+		var modListLen = untrackedFileList.length;
 
-		var modified = result.stdout;
-		var modifiedList = modified.split("\n");
-		top.globals.modified = modifiedList;
-
-		var modListLen = modifiedList.length;
 		if (modListLen > 1) {
 			var modifiedHTML = "";
-			for (var i = 0; i < modifiedList.length-1; ++i) {
+			for (var i = 0; i < untrackedFileList.length-1; ++i) {
 				modifiedHTML += "<input id=\""+ 
-							    modifiedList[i] +
+							    untrackedFileList[i] +
 							 	"\" type=\"checkbox\" onchange=\"toggleFileCheckbox(this)\" " + 
-								"value=\"" + modifiedList[i] + "\">" +
-								"<label for=\"" + modifiedList[i] + "\">" + 
-								modifiedList[i] + "</label><br>";
+								"value=\"" + untrackedFileList[i] + "\">" +
+								"<label for=\"" + untrackedFileList[i] + "\">" + 
+								untrackedFileList[i] + "</label><br>";
 			}
-			winston.info(modifiedHTML);
-			$('#unstaged-files-list').html(modifiedHTML)
-			//document.getElementById("unstaged-files-list").innerHTML = modifiedHTML;
-		} else {
-			var noChanges = "No modified, new, or unstaged files.";
-			$('#unstaged-files-list').html(noChanges);
-			// document.getElementById("unstaged-files-list").innerHTML = noChanges;
+
+			// Repopulate unstaged file list
+			$('#unstaged-files-list').html(modifiedHTML);
 		}
 
-		winston.info($('#commit\\.html').html());
+		return Promise.resolve();
+	})
+	.then(function() {
+		return Git.getFilesToBeCommitted();
+	})
+	.then(function(filesToBeCommitted) {
+		//TODO much code repetition
+		var toBeCommittedHTML = "";
+		filesToBeCommitted.forEach(function (file) {
+			toBeCommittedHTML +=
+				"<input id=\""+
+				file +
+				"\" type=\"checkbox\" onchange=\"toggleFileCheckbox(this)\" " + 
+				"class=\"staged-files\" " +
+				"value=\"" + file + "\">" +
+				"<label for=\"" + file + "\">" + 
+				file + "</label><br>";
+		})
 
+		$('#staged-files-list').html(toBeCommittedHTML);
+		$('.staged-files').attr('checked', true);
 		return Promise.resolve();
 	})
 	.fail(function (error) {
@@ -284,7 +311,7 @@ function getGitStatus() {
 }
 
 /*
- * Generates a commit row from a commit object
+ * 	Generates a commit row from a commit object
  */
 function generateCommitRow(commitInfo) {
 	var sha = "<td>" + commitInfo.sha + "</td>";
@@ -300,20 +327,14 @@ function generateCommitRow(commitInfo) {
 }
 
 /*
- * Generate commit list from stored global repository directory
+ * 	Generate commit list from stored global repository directory
  */
 function populateCommitTable() {
 
 	/* Execute git log */
-	var command = top.globals.gitBaseCommand + 'log';
-	return exec(command)
-	.then(function (result) {
+	return Git.getLog()
+	.then(function (stdoutParts) {
 
-		/* Capture console output */
-		var stdout = result.stdout;
-		var stderr = result.stderr;
-		
-		var stdoutParts = stdout.split("\n");
 		var full = "<tr>"+"<th>Commit</th>"+"<th>Message</th>"+"<th>Author</th>"+"<th>Date</th>";
 		var curCommit = {};
 

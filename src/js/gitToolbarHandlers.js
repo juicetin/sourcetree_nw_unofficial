@@ -1,7 +1,7 @@
 var winston = require('winston');
 
 /*
- * Use top.globals.<etc> to access the global variables
+ * Use top.global.herps.<etc> to access the global.herp variables
  */
 
 /*
@@ -24,16 +24,16 @@ function factory(options) {
 	var gui = options.gui;
 
 	function commit() {
-		winston.info(window.top.globals.stagedFiles);
+		// winston.info(global.herp.stagedFiles);
 		winston.info('commit git toolbar button called');
 
 		// Close window if it is already open
-		if (window.top.windows.commit) {
-			window.top.windows.commit.close();
+		if (global.windows.commit) {
+			global.windows.commit.close();
 		}
 
 		// Show window
-		window.top.windows.commit = gui.Window.open('commit.html', windowOptions);
+		global.windows.commit = gui.Window.open('src/screens/commit.html', windowOptions);
 	}
 	
 	function checkout() {
