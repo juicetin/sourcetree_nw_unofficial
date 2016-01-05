@@ -45,7 +45,7 @@ body {
 }
 
 #detail-section {
-	height: 350px;
+	height: 300px;
 	width: 50%;
 	display: inline-block;
 	vertical-align: top;
@@ -80,7 +80,13 @@ body {
 	width: 25%;
 	overflow: auto;
 	padding: 10px;
-	height: 350px;
+	height: 300px;
+}
+
+.status-file-list {
+	width: 100%;
+	overflow: auto;
+	height: 22%;
 }
 
 .files {
