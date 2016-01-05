@@ -123,13 +123,13 @@ function showCommit(e) {
 	// Capture output from command
 	var commitHash = $(this).attr('id');
 	return Git.commitCodeOutput(commitHash)
-	.then(function (result) {
-		var stderr = result.stderr;
-		if (stderr) {
-			winston.error(stderr);
-		}
-		
-		var HTMLcommitOutput = result.stdout;
+	.then(function (HTMLcommitOutput) {
+		// var stderr = result.stderr;
+		// if (stderr) {
+		// 	winston.error(stderr);
+		// }
+		// 
+		// var HTMLcommitOutput = result.stdout;
 		$( "#commit-details" ).html(HTMLcommitOutput);
 		return Promise.resolve();
 	})

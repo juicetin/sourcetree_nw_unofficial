@@ -18,6 +18,8 @@
   },
   "homepage": "https://github.com/jyting/sourcetree_nw_unofficial#readme",
   "dependencies": {
+    "ansi-to-html": "^0.3.0",
+    "ansi_up": "^1.3.0",
     "bluebird": "^3.1.1",
     "child-process-promise": "^1.1.0",
     "collections": "^1.2.4",

@@ -2,6 +2,9 @@ var winston = require('winston');
 var exec = require('child-process-promise').exec;
 var Git = module.exports;
 var Promise = require('bluebird');
+var ansi_up = require('ansi_up');
+var AnsiToHTML = require('ansi-to-html');
+var ansiToHTML = new AnsiToHTML();
 
 /*
  *	Sets the repo path, git path folder inside the repo,
@@ -37,7 +40,21 @@ Git.commitCodeOutput = function(commitHash) {
 				  commitHash +
 				  convertToHTML;
 	winston.info('The following bash command is being run and output captured: ', command);
-	return exec(command, {maxBuffer: 1024 * 1024 * 1024});
+	return exec(command, {maxBuffer: 1024 * 1024 * 1024})
+	.then(function(result) {
+
+		var stderr = result.stderr;
+		if (stderr) {
+			winston.error(stderr);
+		}
+
+		var ansiOutput = result.stdout;
+		var html = ansiOutput;
+		// var html = ansiToHTML.toHtml(ansiOutput);
+		// var html = ansi_up.escape_for_html(ansiOutput);
+		// html = ansi_up.ansi_to_html(html);
+		return Promise.resolve(html);
+	});
 }
 
 /*
@@ -176,7 +193,7 @@ Git.commit = function(message) {
 		winston.info(stdout);
 		//Stuff?
 		
-		return Promise.resolve();
+		return Promise.resolve(stdout);
 	});
 }
 

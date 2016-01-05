@@ -25,12 +25,9 @@ function showFiles() {
 function registerCommitBtn() {
 	$('#commit-btn').click(function() {
 		var commitMessage = $('#commit-message').val();
-		Git.commit(commitMessage);
+		return Git.commit(commitMessage)
+		.then(function (stdOutput) {
+			$('#herpy').html(stdOutput);
+		})
 	});
-}
-
-function test() {
-	var commitMessage = $('#commit-message').val();
-	$('#herpy').html(txt);
-	Git.commit();
 }
