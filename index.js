@@ -28,6 +28,11 @@ var gitToolbarHandlers = require('./src/js/gitToolbarHandlers.js')({gui: gui});
 
 $( document ).ready(function() {
 	loadGitToolbarHandlers();
+
+	// To make testing easier
+	global.repoPath = '/home/justinting/programming/sourcetree_nw_unofficial';
+	Git.setRepoPath(global.repoPath);
+	updateEnvironment();
 });
 
 /*
@@ -326,6 +331,7 @@ function getGitStatus() {
  * 	Generates a commit row from a commit object
  */
 function generateCommitRow(commitInfo) {
+	var graph = "<td>" + commitInfo.graph + "</td>";
 	var sha = "<td>" + commitInfo.sha + "</td>";
 	var msg = "<td>" + commitInfo.msg + "</td>";
 	var author = "<td>" + commitInfo.author + "</td>";
@@ -333,7 +339,7 @@ function generateCommitRow(commitInfo) {
 	var listClass = " class=\'commit\' ";
 	var listId = " id=" + "\'" + commitInfo.sha + "\' ";
 	var listOpen = "<tr " + listId + listClass + ">";
-	var listLine = listOpen + sha + msg + author + date + "</tr>";
+	var listLine = listOpen + graph + sha + msg + author + date + "</tr>";
 	return listLine;
 }
 
@@ -344,42 +350,46 @@ function populateCommitTable() {
 
 	/* Execute git log */
 	return Git.getLog()
-	.then(function (stdoutParts) {
+	.then(function (commits) {
 
-		var full = "<tr>"+"<th>Commit</th>"+"<th>Message</th>"+"<th>Author</th>"+"<th>Date</th>";
+		var full = "<tr>"+ "<th>Graph</th>" + "<th>Commit</th>"+"<th>Message</th>"+"<th>Author</th>"+"<th>Date</th>";
 		var curCommit = {};
 
-		// Parse each line of git log output
-		for (var line of stdoutParts) {
-			line = line.trim();
-			var i = line.indexOf(" ");
-			var lineParts = [line.slice(0,i), line.slice(i+1)];
-
-			// Store information from output line depending on contents
-			switch(lineParts[0]) {
-				case "commit":
-					// Add another row to HTML to populate commit table
-					if (Object.keys(curCommit).length > 0) {
-						full += generateCommitRow(curCommit);
-					}
-					curCommit.sha= lineParts[1].substring(0,6);
-					break;
-				case "Author:":
-					curCommit.author = lineParts[1];
-					break;
-				case "Date:":
-					curCommit.date = lineParts[1];
-					break;
-				case "Merge:":
-					curCommit.merge = lineParts[1];
-					break;
-				default:
-					if (line.trim().length > 0) {
-						curCommit.msg = line;
-					}
-					break;
-			}
+		for (var commit of commits) {
+			full += generateCommitRow(commit);
 		}
+
+		// // Parse each line of git log output
+		// for (var line of stdoutParts) {
+		// 	line = line.trim();
+		// 	var i = line.indexOf(" ");
+		// 	var lineParts = [line.slice(0,i), line.slice(i+1)];
+
+		// 	// Store information from output line depending on contents
+		// 	switch(lineParts[0]) {
+		// 		case "commit":
+		// 			// Add another row to HTML to populate commit table
+		// 			if (Object.keys(curCommit).length > 0) {
+		// 				full += generateCommitRow(curCommit);
+		// 			}
+		// 			curCommit.sha= lineParts[1].substring(0,6);
+		// 			break;
+		// 		case "Author:":
+		// 			curCommit.author = lineParts[1];
+		// 			break;
+		// 		case "Date:":
+		// 			curCommit.date = lineParts[1];
+		// 			break;
+		// 		case "Merge:":
+		// 			curCommit.merge = lineParts[1];
+		// 			break;
+		// 		default:
+		// 			if (line.trim().length > 0) {
+		// 				curCommit.msg = line;
+		// 			}
+		// 			break;
+		// 	}
+		// }
 
 		/* Set the appropriate section to hold commits */
 		$( '#commits' ).html(full);

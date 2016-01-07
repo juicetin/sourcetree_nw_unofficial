@@ -5,6 +5,9 @@ var Promise = require('bluebird');
 var ansi_up = require('ansi_up');
 var AnsiToHTML = require('ansi-to-html');
 var ansiToHTML = new AnsiToHTML();
+// var ANSI = require('ansi-graphics');
+// var a = new ANSI();
+var _ = require('underscore');
 
 /*
  *	Sets the repo path, git path folder inside the repo,
@@ -52,8 +55,7 @@ Git.commitCodeOutput = function(commitHash) {
 		var html = ansiOutput;
 		// var html = ansiToHTML.toHtml(ansiOutput);
 		// var html = ansi_up.escape_for_html(ansiOutput);
-		// html = ansi_up.ansi_to_html(html);
-		return Promise.resolve(html);
+		return html;
 	});
 }
 
@@ -103,15 +105,55 @@ Git.getUntrackedFileList = function() {
  */
 Git.getLog = function() {
 	var command = global.gitBaseCommand + ' log';
-	return exec(command)
+
+	// TODO Break this up/explain it so it's cleaner
+	// var command2 = global.gitBaseCommand + ' log --graph --abbrev-commit --decorate --date=relative --format=format:\' \;\; %C(bold blue)%h%C(reset) ;; %C(bold cyan)%aD%C(reset) ;; %C(white)%s%C(reset) ;; %C(dim white) %an%C(reset) ;; %C(bold yellow)%d%C(reset)\' --all';
+	var command2 = global.gitBaseCommand + ' log --graph --abbrev-commit --decorate --date=relative --format=format:\' \;\; %h ;; %aD ;; %d - %s ;; %an ;; \' --all';
+	winston.info(command2);
+
+	return exec(command2)
 	.then(function (result) {
-		/* Capture console output */
+
 		var stdout = result.stdout;
-		var stderr = result.stderr;
-		
-		var stdoutParts = stdout.split("\n");
-		return stdoutParts
+
+		var parts = stdout.split(';;');
+		var parts2 = parts.map(function (part) {
+			var html = ansiToHTML.toHtml(part);
+			var html = ansi_up.escape_for_html(part);
+
+			return part.trim();
+			// Trim
+			// return a.plainText(part).trim();
+		}).filter(function(part) {
+			return part.length > 0;
+		});
+
+		var commits = [];
+		for (var i = 0; i < parts2.length; i+=5) {
+			var commit = {
+				graph: parts2[i],
+				sha: parts2[i+1],
+				date: parts2[i+2],
+				msg: parts2[i+3],
+				author: parts2[i+4]
+			};
+
+			commits.push(commit);
+		}
+
+		return Promise.resolve(commits);
 	});
+	// .then(function () {
+	// 	return exec(command)
+	// 	.then(function (result) {
+	// 		/* Capture console output */
+	// 		var stdout = result.stdout;
+	// 		var stderr = result.stderr;
+	// 		
+	// 		var stdoutParts = stdout.split("\n");
+	// 		return stdoutParts
+	// 	});
+	// });
 }
 
 /*
