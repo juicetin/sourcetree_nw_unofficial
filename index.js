@@ -129,12 +129,6 @@ function showCommit(e) {
 	var commitHash = $(this).attr('id');
 	return Git.commitCodeOutput(commitHash)
 	.then(function (HTMLcommitOutput) {
-		// var stderr = result.stderr;
-		// if (stderr) {
-		// 	winston.error(stderr);
-		// }
-		// 
-		// var HTMLcommitOutput = result.stdout;
 		$( "#commit-details" ).html(HTMLcommitOutput);
 		return Promise.resolve();
 	})
@@ -291,8 +285,6 @@ function getGitStatus() {
 		var modListLen = untrackedFileList.length;
 		winston.info(untrackedFileList);
 
-		//winston.info('got here');
-
 		var modifiedHTML = "";
 		// for (var i = 0; i < untrackedFileList.length-1; ++i) {
 		for (var file in untrackedFileList) {
@@ -358,38 +350,6 @@ function populateCommitTable() {
 		for (var commit of commits) {
 			full += generateCommitRow(commit);
 		}
-
-		// // Parse each line of git log output
-		// for (var line of stdoutParts) {
-		// 	line = line.trim();
-		// 	var i = line.indexOf(" ");
-		// 	var lineParts = [line.slice(0,i), line.slice(i+1)];
-
-		// 	// Store information from output line depending on contents
-		// 	switch(lineParts[0]) {
-		// 		case "commit":
-		// 			// Add another row to HTML to populate commit table
-		// 			if (Object.keys(curCommit).length > 0) {
-		// 				full += generateCommitRow(curCommit);
-		// 			}
-		// 			curCommit.sha= lineParts[1].substring(0,6);
-		// 			break;
-		// 		case "Author:":
-		// 			curCommit.author = lineParts[1];
-		// 			break;
-		// 		case "Date:":
-		// 			curCommit.date = lineParts[1];
-		// 			break;
-		// 		case "Merge:":
-		// 			curCommit.merge = lineParts[1];
-		// 			break;
-		// 		default:
-		// 			if (line.trim().length > 0) {
-		// 				curCommit.msg = line;
-		// 			}
-		// 			break;
-		// 	}
-		// }
 
 		/* Set the appropriate section to hold commits */
 		$( '#commits' ).html(full);

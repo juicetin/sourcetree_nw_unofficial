@@ -30,7 +30,6 @@ body {
 	height: 800px;
 	width: 15%;
 	vertical-align: top;
-	resize: horizontal;
 	overflow: auto;
 	display: inline-block;
 }
@@ -41,7 +40,6 @@ body {
 	display: inline-block;
 	vertical-align: top;
 	overflow: auto;
-	resize: horizontal;
 }
 
 #detail-section {
@@ -51,7 +49,6 @@ body {
 	vertical-align: top;
 	overflow: auto;
 	background-color: #DDD;
-	resize: horizontal;
 	max-width: 55%;
 	min-width: 300px;
 }

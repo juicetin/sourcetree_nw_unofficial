@@ -122,12 +122,11 @@ Git.getLog = function() {
 			var html = ansi_up.escape_for_html(part);
 
 			return part.trim();
-			// Trim
-			// return a.plainText(part).trim();
 		}).filter(function(part) {
 			return part.length > 0;
 		});
 
+		// Break commit data down into individual commit objects
 		var commits = [];
 		for (var i = 0; i < parts2.length; i+=5) {
 			var commit = {
@@ -143,17 +142,6 @@ Git.getLog = function() {
 
 		return Promise.resolve(commits);
 	});
-	// .then(function () {
-	// 	return exec(command)
-	// 	.then(function (result) {
-	// 		/* Capture console output */
-	// 		var stdout = result.stdout;
-	// 		var stderr = result.stderr;
-	// 		
-	// 		var stdoutParts = stdout.split("\n");
-	// 		return stdoutParts
-	// 	});
-	// });
 }
 
 /*
@@ -239,6 +227,39 @@ Git.commit = function(message) {
 	});
 }
 
-Git.test = function() {
-	winston.info('aw;elfkas;dlcmjsad;f');
+/*
+ *	
+ */
+Git.checkout = function() {
+
+}
+
+/*
+ *	Pushes the current branch to its remote upstream location
+ */
+Git.push = function() {
+	var curBranch = 'herp';
+
+	var curBranchCommand = global.gitBaseCommand + ' rev parse --abbrev-ref HEAD';
+	return exec(curBranchCommand)
+	.then(function (result) {
+		var stderr = result.stderr;
+		var branch = result.stdout;
+
+		return Promise.resolve(branch);
+	})
+	.then(function (branch) {
+		var command = global.gitBaseCommand + ' -u origin ' + branch;
+		winston.info('About to execute command:\n', command, {});
+		return exec(command);
+	})
+	.then(function (result) {
+		var stderr = result.stderr;
+		var stdout = result.stdout;
+
+		winston.info(stdout);
+		// Stuff?
+		
+		return Promise.resolve(stdout);
+	});
 }

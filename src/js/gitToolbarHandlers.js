@@ -13,6 +13,7 @@ var winston = require('winston');
 
 function factory(options) {
 
+	// Default options for each secondary window
 	var windowOptions = {
 		width: 800,
 		height: 600,
@@ -21,8 +22,12 @@ function factory(options) {
 		resizable: false
 	};
 
+	// NW GUI object to create new windows
 	var gui = options.gui;
 
+	/*
+	 *	Create commit window
+	 */
 	function commit() {
 		// winston.info(global.herp.stagedFiles);
 		winston.info('commit git toolbar button called');
@@ -36,6 +41,9 @@ function factory(options) {
 		global.windows.commit = gui.Window.open('src/screens/commit.html', windowOptions);
 	}
 	
+	/*
+	 *	Create checkout window
+	 */
 	function checkout() {
 		winston.info('checkout git toolbar button called');
 	
@@ -71,21 +79,33 @@ function factory(options) {
 	
 	}
 	
+	/*
+	 *	Create pull window
+	 */
 	function pull() {
 		winston.info('pull git toolbar button called');
 	
 	}
 	
+	/*
+	 *	Create push window
+	 */
 	function push() {
 		winston.info('push git toolbar button called');
 		
 	}
 	
+	/*
+	 *	Create branch window
+	 */
 	function branch() {
 		winston.info('branch git toolbar button called');
 	
 	}
 	
+	/*
+	 *	Create merge window
+	 */
 	function merge() {
 		winston.info('merge git toolbar button called');
 		
