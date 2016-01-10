@@ -254,7 +254,8 @@ Git.checkout = function() {
 Git.push = function() {
 	var curBranch = 'herp';
 
-	var curBranchCommand = global.gitBaseCommand + ' rev parse --abbrev-ref HEAD';
+	var curBranchCommand = global.gitBaseCommand + ' rev-parse --abbrev-ref HEAD';
+	winston.info('About to execute command:\n', curBranchCommand, {});
 	return exec(curBranchCommand)
 	.then(function (result) {
 		var stderr = result.stderr;
@@ -263,7 +264,7 @@ Git.push = function() {
 		return Promise.resolve(branch);
 	})
 	.then(function (branch) {
-		var command = global.gitBaseCommand + ' -u origin ' + branch;
+		var command = global.gitBaseCommand + ' push -u origin ' + branch;
 		winston.info('About to execute command:\n', command, {});
 		return exec(command);
 	})
