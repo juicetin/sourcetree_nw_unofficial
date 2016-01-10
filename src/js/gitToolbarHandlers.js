@@ -92,7 +92,12 @@ function factory(options) {
 	 */
 	function push() {
 		winston.info('push git toolbar button called');
-		
+
+		if (global.windows.push) {
+			globla.windows.push.close();
+		}
+
+		global.windows.push = gui.Window.open('./src/screens/push.html', windowOptions);
 	}
 	
 	/*

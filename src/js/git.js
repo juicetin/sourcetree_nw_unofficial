@@ -65,10 +65,10 @@ Git.commitCodeOutput = function(commitHash) {
  */
 Git.updateUntrackedFileList = function() {
 	// var command = global.gitBaseCommand + ' ls-files -m';
-	//var command = global.gitBaseCommand + ' ls-files --others --exclude-standard ';
-	var command = global.gitBaseCommand + ' diff --name-only ';
+	var command1 = global.gitBaseCommand + ' ls-files --others --exclude-standard ';
+	var command2 = global.gitBaseCommand + ' diff --name-only ';
 
-	return exec(command, {maxBuffer: 1024 * 1024 * 1024})
+	return exec(command1, {maxBuffer: 1024 * 1024 * 1024})
 	.then(function (result) {
 
 		// Log error if needed
@@ -87,7 +87,21 @@ Git.updateUntrackedFileList = function() {
 			global.modified[file] = 1;
 		});
 
-		return Promise.resolve();
+		return exec(command2, {maxBuffer: 1024 * 1024 * 1024});
+	})
+	.then(function (result) {
+		var stderr = result.stderr;
+		if (stderr) {
+			winston.error(stderr);
+		}
+
+		var modified = result.stdout;
+		modifiedList = modified.split("\n")
+		modifiedList.pop();
+		winston.info(modifiedList);
+		modifiedList.forEach(function (file) {
+			global.modified[file] = 1;
+		});
 	});
 }
 
