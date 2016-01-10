@@ -38,10 +38,15 @@ Git.commitCodeOutput = function(commitHash) {
 	var showColor = ' show --color-words ';
 	var convertToHTML = ' | src/ansi2html.sh';
 
-	var command = global.gitBaseCommand +
-				  showColor +
-				  commitHash +
-				  convertToHTML;
+	// This one breaks the conversion somewhat
+	// var command = global.gitBaseCommand +
+	// 			  showColor +
+	// 			  commitHash +
+	// 			  convertToHTML;
+	//
+
+	var command = global.gitBaseCommand + ' diff --color ' + commitHash + convertToHTML;
+
 	winston.info('The following bash command is being run and output captured: ', command);
 	return exec(command, {maxBuffer: 1024 * 1024 * 1024})
 	.then(function(result) {
