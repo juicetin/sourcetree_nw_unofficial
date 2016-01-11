@@ -17,7 +17,6 @@ function factory(options) {
 	var windowOptions = {
 		width: 800,
 		height: 600,
-		frame: false,
 		toolbar: false,
 		resizable: false
 	};

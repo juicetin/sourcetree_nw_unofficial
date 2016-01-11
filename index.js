@@ -29,10 +29,10 @@ var gitToolbarHandlers = require('./src/js/gitToolbarHandlers.js')({gui: gui});
 $( document ).ready(function() {
 	loadGitToolbarHandlers();
 
-	// To make testing easier
-	global.repoPath = '/home/justinting/programming/sourcetree_nw_unofficial';
-	Git.setRepoPath(global.repoPath);
-	updateEnvironment();
+	// // To make testing easier
+	// global.repoPath = '/home/justinting/programming/sourcetree_nw_unofficial';
+	// Git.setRepoPath(global.repoPath);
+	// updateEnvironment();
 });
 
 /*

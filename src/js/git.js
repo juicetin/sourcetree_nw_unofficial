@@ -257,7 +257,6 @@ Git.checkout = function() {
  *	Pushes the current branch to its remote upstream location
  */
 Git.push = function() {
-	var curBranch = 'herp';
 
 	var curBranchCommand = global.gitBaseCommand + ' rev-parse --abbrev-ref HEAD';
 	winston.info('About to execute command:\n', curBranchCommand, {});
@@ -270,14 +269,15 @@ Git.push = function() {
 	})
 	.then(function (branch) {
 		var command = global.gitBaseCommand + ' push -u origin ' + branch;
+		// var command = global.gitBaseCommand + ' push ';
 		winston.info('About to execute command:\n', command, {});
-		return exec(command);
+		return exec(command, {maxBuffer: 1024*1024*1024});
 	})
 	.then(function (result) {
 		var stderr = result.stderr;
 		var stdout = result.stdout;
 
-		winston.info(stdout);
+		console.log(result);
 		// Stuff?
 		
 		return Promise.resolve(stdout);
