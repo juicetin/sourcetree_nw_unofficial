@@ -13,6 +13,8 @@ var winston = require('winston');
 
 function factory(options) {
 
+	var Git = global.Git;
+
 	// Default options for each secondary window
 	var windowOptions = {
 		width: 800,
@@ -120,20 +122,28 @@ function factory(options) {
 	
 	}
 
+	function checkLiveRepo(func) {
+		return func;
+		// winston.info('Checking for a repo path...', Git.getRepoPath(), {});
+		// if (Git.getRepoPath()) {
+		// 	return func;
+		// }
+	}
+
 	return {
-		commit: commit,
-		checkout: checkout,
-		reset: reset,
-		stash: stash,
-		add: add,
-		remove: remove,
-		addRemove: addRemove,
-		fetch: fetch,
-		pull: pull,
-		push: push,
-		branch: branch,
-		merge: merge,
-		tag: tag
+		commit: checkLiveRepo(commit),
+		checkout: checkLiveRepo(checkout),
+		reset: checkLiveRepo(reset),
+		stash: checkLiveRepo(stash),
+		add: checkLiveRepo(add),
+		remove: checkLiveRepo(remove),
+		addRemove: checkLiveRepo(addRemove),
+		fetch: checkLiveRepo(fetch),
+		pull: checkLiveRepo(pull),
+		push: checkLiveRepo(push),
+		branch: checkLiveRepo(branch),
+		merge: checkLiveRepo(merge),
+		tag: checkLiveRepo(tag)
 	};
 }
 

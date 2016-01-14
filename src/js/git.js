@@ -9,6 +9,19 @@ var ansiToHTML = new AnsiToHTML();
 // var a = new ANSI();
 var _ = require('underscore');
 
+
+Git.addRepoPath = function (path) {
+	if (!global.repoPaths[path]) {
+		global.repoPaths[path] = 1;
+
+		// Path didn't already exist
+		return true;
+	}
+
+	// Path already existed
+	return false;
+}
+
 /*
  *	Sets the repo path, git path folder inside the repo,
  *	and the base git command stating git directory and work tree
@@ -35,17 +48,14 @@ Git.setRepoPath = function(path) {
  *	@param {String} commitHash - SHA hash
  */
 Git.commitCodeOutput = function(commitHash) {
-	var showColor = ' show --color-words ';
+	var show = ' show --color ';
 	var convertToHTML = ' | src/ansi2html.sh';
 
 	// This one breaks the conversion somewhat
-	// var command = global.gitBaseCommand +
-	// 			  showColor +
-	// 			  commitHash +
-	// 			  convertToHTML;
-	//
-
-	var command = global.gitBaseCommand + ' diff --color ' + commitHash + convertToHTML;
+	var command = global.gitBaseCommand +
+				  show +
+				  commitHash +
+				  convertToHTML;
 
 	winston.info('The following bash command is being run and output captured: ', command);
 	return exec(command, {maxBuffer: 1024 * 1024 * 1024})
@@ -224,6 +234,13 @@ Git.updateFilesToBeCommitted = function() {
 
 		return Promise.resolve();
 	});
+}
+
+/*
+ *	Get a list of staged files
+ */
+Git.getStagedFiles = function() {
+	return global.stagedFiles;
 }
 
 /*

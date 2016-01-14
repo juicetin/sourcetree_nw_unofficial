@@ -1,3 +1,8 @@
+/*
+ * 	TODO list
+ *		+ deal with when a repo has no commits yet
+ */
+
 "use strict"
 
 class Commit {
@@ -29,9 +34,9 @@ var gitToolbarHandlers = require('./src/js/gitToolbarHandlers.js')({gui: gui});
 $( document ).ready(function() {
 	loadGitToolbarHandlers();
 
-	// To make testing easier
-	Git.setRepoPath('/home/justinting/programming/sourcetree_nw_unofficial');
-	updateEnvironment();
+	// // To make testing easier
+	// Git.setRepoPath('/home/justinting/programming/sourcetree_nw_unofficial');
+	// updateEnvironment();
 });
 
 /*
@@ -59,45 +64,70 @@ function loadGitToolbarHandlers() {
 }
 
 /*
- *	Check if the repo path provided is an actual git repo
+ *	Toggle whether the repo tab row is visible or not
  */
-function checkIfRepo() {
-	var repoPath = Git.getRepoPath();
-	while (repoPath === undefined) {}
-	var files = fs.readdirSync(repoPath).forEach(function (file) {
-		winston.info(file);
-	});
+function toggleRepoTabs() {
+	// Toggle whether repo tabs are visible
+	$('#repo-tabs').toggle();
 }
 
-/* 
- * 	Load a git repo locally (broken)
+/*
+ *	Check if the repo path provided is an actual git repo
  */
-function loadRepo() {
-	return loadFolder()
-	.then(function () {
-		return checkIfRepo();
-	})
-	.then(function (isRepo) {
-		if (isRepo) {
-			winston.info('is repo');
+function isRepo(path, callback) {
+	var files = fs.readdir(path, function (err, files) {
+		if (files.indexOf(".git") > -1) {
+			callback(true);
 		} else {
-			winston.info('isnt repo');
+			callback(false);
 		}
-		return Promise.resolve();
 	});
 }
 
 /*
  * 	Load a git repo folder path into the global vars
  */
-function loadFolder() {
+function loadRepo() {
 
 	// Generate folder choosing popup
 	var chooser = document.createElement('input');
 	chooser.setAttribute('type', 'file');
 	chooser.setAttribute('nwdirectory', 'true');
 	chooser.addEventListener('change', function (evt) {
-		Git.setRepoPath(this.value);
+		var repoPath = this.value;
+
+		isRepo(repoPath, function(repoBool) {
+			if (repoBool === true) {
+				Git.setRepoPath(repoPath);
+
+				// Add repo path to global list of paths
+				var newPath = Git.addRepoPath(repoPath);
+
+				// Add new tab with repo if it didn't exit already
+				if (newPath) {
+					var pathParts = repoPath.split("/");
+					var repoName = 	pathParts[pathParts.length-1];
+					var repoTabId = repoName + "-tab";
+					var tabHTML = 	"<li id=" + repoTabId +
+						"><a data-toggle=\"tab\" href=\"#\">" + 
+						repoName + "</a></li>";
+
+					// Add 'tab' (but really...) to tab list
+					$('#repo-tabs').append(tabHTML);
+
+					// Assign click functionality
+					$('#' + repoTabId).click(function () {
+						console.log(repoPath);
+						Git.setRepoPath(repoPath);
+						updateEnvironment();
+					});
+					$('#' + repoTabId).click();
+				}
+			} else {
+				// TODO popup saying directory was not a valid git repository
+			}
+		});
+
 	}, false);
 
 	chooser.click();
@@ -126,9 +156,10 @@ function showCommit(e) {
 	
 	// Capture output from command
 	var commitHash = $(this).attr('id');
+	$( '#commit-details' ).html('Loading...');
 	return Git.commitCodeOutput(commitHash)
 	.then(function (HTMLcommitOutput) {
-		$( "#commit-details" ).html(HTMLcommitOutput);
+		$( "#commit-details" ).hide().html(HTMLcommitOutput).fadeIn('medium');
 		return Promise.resolve();
 	})
 	.fail(function (error) {
@@ -144,6 +175,8 @@ function showCommit(e) {
  * 	  git statuses (all modified/unstaged/delete/etc.)
  */
 function updateEnvironment() {
+
+	winston.info('Updating environment...');
 
 	// No modifying action if no repo loaded yet
 	if (!Git.getRepoPath()) {
@@ -300,7 +333,7 @@ function getGitStatus() {
 	})
 	.then(function() {
 
-		var filesToBeCommitted = global.stagedFiles;
+		var filesToBeCommitted = Git.getStagedFiles();
 
 		var toBeCommittedHTML = "";
 		//filesToBeCommitted.forEach(function (file) {
@@ -322,8 +355,9 @@ function getGitStatus() {
  * 	Generates a commit row from a commit object
  */
 function generateCommitRow(commitInfo) {
-	var graph = "<td>" + commitInfo.graph + "</td>";
+	var graph = "<td>" + /*commitInfo.graph +*/ "</td>";
 	var sha = "<td>" + commitInfo.sha + "</td>";
+	if (commitInfo.msg.length > 100) commitInfo.msg = commitInfo.msg.substring(0,100) + '...';
 	var msg = "<td>" + commitInfo.msg + "</td>";
 	var author = "<td>" + commitInfo.author + "</td>";
 	var date = "<td>" + commitInfo.date + "</td>";
