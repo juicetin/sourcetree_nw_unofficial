@@ -26,6 +26,7 @@
     "child-process-promise": "^1.1.0",
     "collections": "^1.2.4",
     "fs": "0.0.2",
+    "fs-promise": "^0.3.1",
     "highlight": "^0.2.4",
     "node-webkit": "0.0.0",
     "requirejs": "^2.1.22",

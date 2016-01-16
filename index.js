@@ -16,22 +16,33 @@ class Commit {
 }
 
 var gui = require('nw.gui')
-global.windows.w = window.screen.availWidth;
-global.windows.h = window.screen.availHeight;
 
 var winston = require('winston');
 var hl = require('highlight').Highlight;
 var Set = require('collections/set');
 
 var fs = require('fs');
+var fsp = require('fs-promise');
 var Promise = require('bluebird');
 
 var Git = require('./src/js/git.js');
-global.Git = Git; // Hacky - but nwjs require is broken, can't include from other directories
 
 var gitToolbarHandlers = require('./src/js/gitToolbarHandlers.js')({gui: gui});
 
 $( document ).ready(function() {
+
+	// Initialise global objects
+	global.modified = {};
+	global.stagedFiles = {};
+	global.windows = {};
+	global.repoPaths = {};
+
+	global.Git = Git; // Hacky - but nwjs require is broken, can't include from other directories
+
+	global.windows.w = window.screen.availWidth;
+	global.windows.h = window.screen.availHeight;
+
+	loadAllPrevRepos();
 	loadGitToolbarHandlers();
 
 	// // To make testing easier
@@ -85,6 +96,62 @@ function isRepo(path, callback) {
 }
 
 /*
+ *	Reads text file containing all previously open repos - 
+ *	and will open every one of them in separate tabs
+ */
+function loadAllPrevRepos() {
+
+	return fsp.readFile('openRepoList.txt')
+	.then(function (data) {
+		var repos = data.toString().split("\n");
+		return Promise.each(repos, function(repo) {
+			if (repo.length === 0) return Promise.resolve();
+			return createTab(repo);
+		});
+	})
+	.catch(function (error) {
+		winston.error('Error reading prev repo file list, or it doesn\'t yet exist: ', error, {});
+	});
+}
+
+/*
+ *	Given a path, create tab if appropriate
+ */
+function createTab(repoPath) {
+	isRepo(repoPath, function(repoBool) {
+		if (repoBool === true) {
+			Git.setRepoPath(repoPath);
+
+			// Add repo path to global list of paths
+			var newPath = Git.addRepoPath(repoPath);
+
+			// Add new tab with repo if it didn't exit already
+			if (newPath) {
+				var pathParts = repoPath.split("/");
+				var repoName = 	pathParts[pathParts.length-1];
+				var repoTabId = repoName + "-tab";
+				var tabHTML = 	"<li id=" + repoTabId +
+					"><a data-toggle=\"tab\" href=\"#\">" + 
+					repoName + "</a></li>";
+
+				// Add 'tab' (but really...) to tab list
+				$('#repo-tabs').append(tabHTML);
+
+				// Assign click functionality
+				$('#' + repoTabId).click(function () {
+					console.log(repoPath);
+					Git.setRepoPath(repoPath);
+					updateEnvironment();
+				});
+				$('#' + repoTabId).click();
+			}
+		} else {
+			// TODO popup saying directory was not a valid git repository
+		}
+	});
+}
+
+/*
  * 	Load a git repo folder path into the global vars
  */
 function loadRepo() {
@@ -93,41 +160,11 @@ function loadRepo() {
 	var chooser = document.createElement('input');
 	chooser.setAttribute('type', 'file');
 	chooser.setAttribute('nwdirectory', 'true');
+	// chooser.setAttribute('directory', 'true');
+	// chooser.setAttribute('multiple', 'true');
 	chooser.addEventListener('change', function (evt) {
 		var repoPath = this.value;
-
-		isRepo(repoPath, function(repoBool) {
-			if (repoBool === true) {
-				Git.setRepoPath(repoPath);
-
-				// Add repo path to global list of paths
-				var newPath = Git.addRepoPath(repoPath);
-
-				// Add new tab with repo if it didn't exit already
-				if (newPath) {
-					var pathParts = repoPath.split("/");
-					var repoName = 	pathParts[pathParts.length-1];
-					var repoTabId = repoName + "-tab";
-					var tabHTML = 	"<li id=" + repoTabId +
-						"><a data-toggle=\"tab\" href=\"#\">" + 
-						repoName + "</a></li>";
-
-					// Add 'tab' (but really...) to tab list
-					$('#repo-tabs').append(tabHTML);
-
-					// Assign click functionality
-					$('#' + repoTabId).click(function () {
-						console.log(repoPath);
-						Git.setRepoPath(repoPath);
-						updateEnvironment();
-					});
-					$('#' + repoTabId).click();
-				}
-			} else {
-				// TODO popup saying directory was not a valid git repository
-			}
-		});
-
+		createTab(repoPath);
 	}, false);
 
 	chooser.click();
@@ -139,14 +176,24 @@ function loadRepo() {
  */
 function commitEventListeners() {
 	winston.info('Attempting to commit all listeners');
-	var li = document.getElementsByClassName("commit");
-	
-	winston.info('There are ', li.length, ' commits in the repository.');
-	for (var i = 0; i < li.length; ++i) {
-		li[i].addEventListener("click", showCommit);
-	}
+	// var li = document.getElementsByClassName("commit-table-entries");
+	var li = $('.commit-table-entries')
+	.each(function() {
+		$('#' + this.id).click(showCommit);
+		$('#' + this.id).dblclick(commitCheckout);
 
+		//TODO disable click for ~1 second after first click http://stackoverflow.com/questions/10593062/how-do-i-temporarily-disable-a-submit-button-for-3-seconds-onsubmit-then-re-e
+		// OR - simply don't load anything if commit is already loaded (see below);
+	});
 	return Promise.resolve();
+}
+
+/*
+ *	Checks out to a particular commit hash, detaches head
+ */
+function commitCheckout(e) {
+	// TODO do a commit checkout here
+	winston.info('Placeholder - should be checkout out to a commit here');
 }
 
 /*
@@ -156,10 +203,19 @@ function showCommit(e) {
 	
 	// Capture output from command
 	var commitHash = $(this).attr('id');
+
+	var curCommitDetail = $('#detail-section span').attr('id');
+	if (curCommitDetail === commitHash + "-code" ) {
+		return Promise.resolve();
+	}
+
 	$( '#commit-details' ).html('Loading...');
 	return Git.commitCodeOutput(commitHash)
 	.then(function (HTMLcommitOutput) {
-		$( "#commit-details" ).hide().html(HTMLcommitOutput).fadeIn('medium');
+
+		var commitOutput = "<span id=" + commitHash + "-code >" + HTMLcommitOutput + "</span>";
+
+		$( "#commit-details" ).hide().html(commitOutput).fadeIn('medium');
 		return Promise.resolve();
 	})
 	.fail(function (error) {
@@ -175,7 +231,7 @@ function showCommit(e) {
  * 	  git statuses (all modified/unstaged/delete/etc.)
  */
 function updateEnvironment() {
-
+	Git.clearEnv();
 	winston.info('Updating environment...');
 
 	// No modifying action if no repo loaded yet
@@ -314,11 +370,9 @@ function getGitStatus() {
 	return Git.updateUntrackedFileList()
 	.then(function () {
 		var untrackedFileList = Git.getUntrackedFileList();
-		var modListLen = untrackedFileList.length;
 		winston.info(untrackedFileList);
 
 		var modifiedHTML = "";
-		// for (var i = 0; i < untrackedFileList.length-1; ++i) {
 		for (var file in untrackedFileList) {
 			modifiedHTML += buildGitStatusFileHTML(file);
 		}
@@ -328,6 +382,8 @@ function getGitStatus() {
 
 		return Promise.resolve();
 	})
+
+	// Staged file list
 	.then(function() {
 		return Git.updateFilesToBeCommitted();
 	})
@@ -361,10 +417,10 @@ function generateCommitRow(commitInfo) {
 	var msg = "<td>" + commitInfo.msg + "</td>";
 	var author = "<td>" + commitInfo.author + "</td>";
 	var date = "<td>" + commitInfo.date + "</td>";
-	var listClass = " class=\'commit\' ";
+	var listClass = " class=\'commit-table-entries\' ";
 	var listId = " id=" + "\'" + commitInfo.sha + "\' ";
 	var listOpen = "<tr " + listId + listClass + ">";
-	var listLine = listOpen + graph + sha + msg + author + date + "</tr>";
+	var listLine = listOpen + graph + msg + date + author + sha + "</tr>";
 	return listLine;
 }
 
@@ -373,11 +429,13 @@ function generateCommitRow(commitInfo) {
  */
 function populateCommitTable() {
 
+	//TODO do first row that is uncommitted changes (if it exists);
+
 	/* Execute git log */
 	return Git.getLog()
 	.then(function (commits) {
 
-		var full = "<tr>"+ "<th>Graph</th>" + "<th>Commit</th>"+"<th>Message</th>"+"<th>Author</th>"+"<th>Date</th>";
+		var full = "<tr>"+ "<th>Graph</th>" + "<th>Description</th>"+"<th>Date</th>"+"<th>Author</th>"+"<th>Commit</th>";
 		var curCommit = {};
 
 		for (var commit of commits) {

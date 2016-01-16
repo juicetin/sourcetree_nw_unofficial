@@ -263,11 +263,22 @@ Git.commit = function(message) {
 	});
 }
 
-/*
- *	
- */
-Git.checkout = function() {
+var stashMsg = "linux git client stash 	23reWFWQ@fwae131!!RREGAafFA214-JKJJ"
 
+/*
+ *	Checks out to a particular commit
+ */
+Git.checkout = function(commitHash) {
+	//TODO
+	var stashCommand = global.gitBaseCommand + ' stash save "' + stashMsg + '" ';
+}
+
+/*
+ *	 Restores to the working copy before a branch checkout
+ */
+Git.restoreWorkingCopy = function() {
+	// TODO
+	var command = 'git stash list --online | grep "' + stashMsg + '" | awk "{print $1}"'
 }
 
 /*
@@ -299,4 +310,12 @@ Git.push = function() {
 		
 		return Promise.resolve(stdout);
 	});
+}
+
+/*
+ *	Clears the current repo environment
+ */
+Git.clearEnv = function() {
+	global.stagedFiles = {};
+	global.modified = {};
 }

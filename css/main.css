@@ -12,13 +12,19 @@ body {
 	margin-top:0px;
 }
 
-td {
-	padding: 5px;
+table {
+	border-collapse: separate;
+	border-spacing: 7px;
 }
 
+tr {
+	padding: 0px;
+}
+
+/* Alternate background colour in the commit table */
 .table-striped>tbody>tr:nth-child(odd)>td,
 .table-striped>tbody>tr:nth-child(odd)>th {
-	background-color: #ddd;
+	background-color: #eef;
 }
 
 #titlebar {
