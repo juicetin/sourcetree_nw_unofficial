@@ -1,2 +1,3 @@
 /home/justinting/programming/sourcetree_nw_unofficial
 /home/justinting/programming/usyd_student_pal/usyd_student_pal_scraper
+/home/justinting/programming/terem/SSP/ssp_sense-controller

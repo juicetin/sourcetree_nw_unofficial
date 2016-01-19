@@ -39,7 +39,7 @@ function factory(options) {
 		}
 
 		// Show window
-		global.windows.commit = gui.Window.open('src/screens/commit.html', windowOptions);
+		global.windows.commit = gui.Window.open('html/commit.html', windowOptions);
 	}
 	
 	/*

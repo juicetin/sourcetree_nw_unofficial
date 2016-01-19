@@ -49,7 +49,7 @@ Git.setRepoPath = function(path) {
  */
 Git.commitCodeOutput = function(commitHash) {
 	var show = ' show --color ';
-	var convertToHTML = ' | src/ansi2html.sh';
+	var convertToHTML = ' | utils/ansi2html.sh';
 
 	// This one breaks the conversion somewhat
 	var command = global.gitBaseCommand +
