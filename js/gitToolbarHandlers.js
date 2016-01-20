@@ -95,7 +95,7 @@ function factory(options) {
 		winston.info('push git toolbar button called');
 
 		// Close window if it is already open
-		if (!options.WindowProps.windows.push) {
+		if (options.WindowProps.windows.push) {
 			options.WindowProps.windows.commit.push();
 		};
 
