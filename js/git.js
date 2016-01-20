@@ -9,10 +9,15 @@ var ansiToHTML = new AnsiToHTML();
 // var a = new ANSI();
 var _ = require('underscore');
 
+var gitGlobals = {
+	modified: {},
+	stagedFiles: {},
+	repoPaths: {}
+};
 
 Git.addRepoPath = function (path) {
-	if (!global.repoPaths[path]) {
-		global.repoPaths[path] = 1;
+	if (!gitGlobals.repoPaths[path]) {
+		gitGlobals.repoPaths[path] = 1;
 
 		// Path didn't already exist
 		return true;
@@ -30,16 +35,16 @@ Git.addRepoPath = function (path) {
  *	@param {String} path to the repo directory
  */
 Git.setRepoPath = function(path) {
-	global.repoPath = path;
-	winston.info('global repo path now: ', global.repoPath, {});
+	gitGlobals.repoPath = path;
+	winston.info('global repo path now: ', gitGlobals.repoPath, {});
 
-	global.repoGitPath = global.repoPath + '/.git/';
-	winston.info('global repo git path now: ', global.repoGitPath, {});
+	gitGlobals.repoGitPath = gitGlobals.repoPath + '/.git/';
+	winston.info('global repo git path now: ', gitGlobals.repoGitPath, {});
 
-	global.gitBaseCommand = 'git --git-dir=' + global.repoGitPath +
-								 ' --work-tree=' + global.repoPath + ' ';
-	winston.info('global base repo git command now: ', global.gitBaseCommand, {});
-	global.folderSelected = true;
+	gitGlobals.gitBaseCommand = 'git --git-dir=' + gitGlobals.repoGitPath +
+								 ' --work-tree=' + gitGlobals.repoPath + ' ';
+	winston.info('global base repo git command now: ', gitGlobals.gitBaseCommand, {});
+	gitGlobals.folderSelected = true;
 }
 
 /*
@@ -52,7 +57,7 @@ Git.commitCodeOutput = function(commitHash) {
 	var convertToHTML = ' | utils/ansi2html.sh';
 
 	// This one breaks the conversion somewhat
-	var command = global.gitBaseCommand +
+	var command = gitGlobals.gitBaseCommand +
 				  show +
 				  commitHash +
 				  convertToHTML;
@@ -79,9 +84,9 @@ Git.commitCodeOutput = function(commitHash) {
  *	been added before, and files that have been modified since last commit, etc.
  */
 Git.updateUntrackedFileList = function() {
-	// var command = global.gitBaseCommand + ' ls-files -m';
-	var command1 = global.gitBaseCommand + ' ls-files --others --exclude-standard ';
-	var command2 = global.gitBaseCommand + ' diff --name-only ';
+	// var command = gitGlobals.gitBaseCommand + ' ls-files -m';
+	var command1 = gitGlobals.gitBaseCommand + ' ls-files --others --exclude-standard ';
+	var command2 = gitGlobals.gitBaseCommand + ' diff --name-only ';
 
 	return exec(command1, {maxBuffer: 1024 * 1024 * 1024})
 	.then(function (result) {
@@ -97,9 +102,9 @@ Git.updateUntrackedFileList = function() {
 		var modifiedList = modified.split("\n");
 		modifiedList.pop();
 		winston.info(modifiedList);
-		// global.modified = modifiedList;
+		// gitGlobals.modified = modifiedList;
 		modifiedList.forEach(function (file) {
-			global.modified[file] = 1;
+			gitGlobals.modified[file] = 1;
 		});
 
 		return exec(command2, {maxBuffer: 1024 * 1024 * 1024});
@@ -115,7 +120,7 @@ Git.updateUntrackedFileList = function() {
 		modifiedList.pop();
 		winston.info(modifiedList);
 		modifiedList.forEach(function (file) {
-			global.modified[file] = 1;
+			gitGlobals.modified[file] = 1;
 		});
 	});
 }
@@ -126,18 +131,18 @@ Git.updateUntrackedFileList = function() {
  *	@return the nested 'object list' of all untracked files
  */
 Git.getUntrackedFileList = function() {
-	return global.modified;
+	return gitGlobals.modified;
 }
 
 /*
  *	Gets the output of the 'git log' command
  */
 Git.getLog = function() {
-	var command = global.gitBaseCommand + ' log';
+	var command = gitGlobals.gitBaseCommand + ' log';
 
 	// TODO Break this up/explain it so it's cleaner
-	// var command2 = global.gitBaseCommand + ' log --graph --abbrev-commit --decorate --date=relative --format=format:\' \;\; %C(bold blue)%h%C(reset) ;; %C(bold cyan)%aD%C(reset) ;; %C(white)%s%C(reset) ;; %C(dim white) %an%C(reset) ;; %C(bold yellow)%d%C(reset)\' --all';
-	var command2 = global.gitBaseCommand + ' log --graph --abbrev-commit --decorate --date=relative --format=format:\' \;\; %h ;; %aD ;; %d - %s ;; %an ;; \' --all';
+	// var command2 = gitGlobals.gitBaseCommand + ' log --graph --abbrev-commit --decorate --date=relative --format=format:\' \;\; %C(bold blue)%h%C(reset) ;; %C(bold cyan)%aD%C(reset) ;; %C(white)%s%C(reset) ;; %C(dim white) %an%C(reset) ;; %C(bold yellow)%d%C(reset)\' --all';
+	var command2 = gitGlobals.gitBaseCommand + ' log --graph --abbrev-commit --decorate --date=relative --format=format:\' \;\; %h ;; %aD ;; %d - %s ;; %an ;; \' --all';
 	winston.info(command2);
 
 	return exec(command2)
@@ -179,7 +184,7 @@ Git.getLog = function() {
  *	@return the global repo path
  */
 Git.getRepoPath = function() {
-	return global.repoPath;
+	return gitGlobals.repoPath;
 }
 
 /*
@@ -188,10 +193,10 @@ Git.getRepoPath = function() {
  *	@param {String} elementId - also simply the 'directory/name' of the file being unstaged
  */
 Git.removeStagedFile = function(elementId) {
-	var command = global.gitBaseCommand + ' reset HEAD ' + global.repoPath + '/' + elementId;
+	var command = gitGlobals.gitBaseCommand + ' reset HEAD ' + gitGlobals.repoPath + '/' + elementId;
 	return exec(command)
 	.then(function() {
-		delete global.stagedFiles[elementId];
+		delete gitGlobals.stagedFiles[elementId];
 	});
 }
 
@@ -201,11 +206,11 @@ Git.removeStagedFile = function(elementId) {
  *	@param {String} elementId - simply the 'directory/name' of the file being unstaged
  */
 Git.addStagedFile = function(elementId) {
-	var command = global.gitBaseCommand + ' add ' + global.repoPath + '/' + elementId;
+	var command = gitGlobals.gitBaseCommand + ' add ' + gitGlobals.repoPath + '/' + elementId;
 	winston.info(command);
 	return exec(command)
 	.then(function () {
-		global.stagedFiles[elementId] = 1;
+		gitGlobals.stagedFiles[elementId] = 1;
 		return Promise.resolve();
 	});
 }
@@ -214,7 +219,7 @@ Git.addStagedFile = function(elementId) {
  *	Get the list of files to be committed
  */
 Git.updateFilesToBeCommitted = function() {
-	var command = global.gitBaseCommand + ' diff --cached --name-only ';
+	var command = gitGlobals.gitBaseCommand + ' diff --cached --name-only ';
 	return exec(command)
 	.then(function (result) {
 		var stdout = result.stdout;
@@ -227,8 +232,8 @@ Git.updateFilesToBeCommitted = function() {
 
 			// If file is already modified, ignore the fact that there is
 			// a semi-staged file so the file doesn't double up in both lists
-			if (!global.modified[file]) {
-				global.stagedFiles[file] = 1;
+			if (!gitGlobals.modified[file]) {
+				gitGlobals.stagedFiles[file] = 1;
 			}
 		}
 
@@ -240,7 +245,7 @@ Git.updateFilesToBeCommitted = function() {
  *	Get a list of staged files
  */
 Git.getStagedFiles = function() {
-	return global.stagedFiles;
+	return gitGlobals.stagedFiles;
 }
 
 /*
@@ -249,7 +254,7 @@ Git.getStagedFiles = function() {
  *	@param {String} Commit message
  */
 Git.commit = function(message) {
-	var command = global.gitBaseCommand + ' commit -m \"' + message + "\"";
+	var command = gitGlobals.gitBaseCommand + ' commit -m \"' + message + "\"";
 	winston.info('About to execute command:\n', command, {});
 	return exec(command)
 	.then(function (result) {
@@ -270,7 +275,7 @@ var stashMsg = "linux git client stash 	23reWFWQ@fwae131!!RREGAafFA214-JKJJ"
  */
 Git.checkout = function(commitHash) {
 	//TODO
-	var stashCommand = global.gitBaseCommand + ' stash save "' + stashMsg + '" ';
+	var stashCommand = gitGlobals.gitBaseCommand + ' stash save "' + stashMsg + '" ';
 }
 
 /*
@@ -286,7 +291,7 @@ Git.restoreWorkingCopy = function() {
  */
 Git.push = function() {
 
-	var curBranchCommand = global.gitBaseCommand + ' rev-parse --abbrev-ref HEAD';
+	var curBranchCommand = gitGlobals.gitBaseCommand + ' rev-parse --abbrev-ref HEAD';
 	winston.info('About to execute command:\n', curBranchCommand, {});
 	return exec(curBranchCommand)
 	.then(function (result) {
@@ -296,8 +301,8 @@ Git.push = function() {
 		return Promise.resolve(branch);
 	})
 	.then(function (branch) {
-		var command = global.gitBaseCommand + ' push -u origin ' + branch;
-		// var command = global.gitBaseCommand + ' push ';
+		var command = gitGlobals.gitBaseCommand + ' push -u origin ' + branch;
+		// var command = gitGlobals.gitBaseCommand + ' push ';
 		winston.info('About to execute command:\n', command, {});
 		return exec(command, {maxBuffer: 1024*1024*1024});
 	})
@@ -316,6 +321,6 @@ Git.push = function() {
  *	Clears the current repo environment
  */
 Git.clearEnv = function() {
-	global.stagedFiles = {};
-	global.modified = {};
+	gitGlobals.stagedFiles = {};
+	gitGlobals.modified = {};
 }

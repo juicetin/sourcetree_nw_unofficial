@@ -34,12 +34,12 @@ function factory(options) {
 		winston.info('commit git toolbar button called');
 
 		// Close window if it is already open
-		if (global.windows.commit) {
-			global.windows.commit.close();
-		}
+		if (options.WindowProps.windows.commit) {
+			options.WindowProps.windows.commit.close();
+		};
 
 		// Show window
-		global.windows.commit = gui.Window.open('html/commit.html', windowOptions);
+		options.WindowProps.windows.commit = gui.Window.open('html/commit.html', windowOptions);
 	}
 	
 	/*
@@ -94,11 +94,13 @@ function factory(options) {
 	function push() {
 		winston.info('push git toolbar button called');
 
-		if (global.windows.push) {
-			global.windows.push.close();
-		}
+		// Close window if it is already open
+		if (!options.WindowProps.windows.push) {
+			options.WindowProps.windows.commit.push();
+		};
 
-		global.windows.push = gui.Window.open('./src/screens/push.html', windowOptions);
+		// Show window
+		options.WindowProps.windows.push = gui.Window.open('html/push.html', windowOptions);
 	}
 	
 	/*

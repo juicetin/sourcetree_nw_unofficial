@@ -6,6 +6,7 @@
 "use strict"
 
 var gui = require('nw.gui')
+var winston = require('winston');
 
 var LinuxGit = require('./js/main.js')({
 	$: $,
@@ -15,5 +16,5 @@ var LinuxGit = require('./js/main.js')({
 
 LinuxGit.start()
 .then(function () {
-	console.log('Linux git client started...');
+	winston.info('Linux git client started...');
 });

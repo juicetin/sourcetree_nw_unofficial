@@ -28,9 +28,12 @@ function factory (options) {
 	
 	var Git = require('./git.js');
 	
-	var gitToolbarHandlers = require('./gitToolbarHandlers.js')({gui: gui});
+	var gitToolbarHandlersFactory = require('./gitToolbarHandlers.js'); //({gui: gui});
+	var gitToolbarHandlers;
 
 	var functions = {};
+
+	var WindowProps = {};
 
 	/*
 	 *	All functions needed to start the app
@@ -39,15 +42,20 @@ function factory (options) {
 		$( document ).ready(function() {
 		
 			// Initialise global objects
-			global.modified = {};
-			global.stagedFiles = {};
-			global.windows = {};
-			global.repoPaths = {};
+			//global.windows = {};
+			WindowProps.windows = {};
 		
 			global.Git = Git; // Hacky - but nwjs require is broken, can't include from other directories
 		
-			global.windows.w = window.screen.availWidth;
-			global.windows.h = window.screen.availHeight;
+			WindowProps.mainWidth = window.screen.availWidth;
+			WindowProps.mainHeight = window.screen.availHeight;
+
+			gitToolbarHandlers = gitToolbarHandlersFactory({
+				gui: gui,
+				WindowProps: WindowProps
+			});
+			// global.windows.w = window.screen.availWidth;
+			// global.windows.h = window.screen.availHeight;
 		
 			loadRepoButtonHandler();
 			loadAllPrevRepos();
@@ -343,6 +351,7 @@ function factory (options) {
 	 *	@param {String} elementId - the DOM element id, also the filename
 	 */
 	function removeGitStatusFile(elementId) {
+		console.log('called');
 		$('#' + elementId).next('label').remove();
 		$('#' + elementId).next('br').remove();
 		$('#' + elementId).remove();
@@ -358,10 +367,12 @@ function factory (options) {
 	function buildGitStatusFileHTML(elementId, setupStagedFiles) {
 		var html = "<input id=\""+ 
 			elementId +
-			"\" type=\"checkbox\" onchange=\"toggleFileCheckbox(this)\" ";
+			"\" type=\"checkbox\" ";
 
 		if (setupStagedFiles) {
-			html += "class=\"staged-files\" ";
+			html += " class=\"staged-files\" ";
+		} else {
+			html += " class=\"unstaged-files\" ";
 		}
 
 		html += "value=\"" + elementId + "\">" +
@@ -395,6 +406,9 @@ function factory (options) {
 				// Add file to the unstaged list, and leave unchecked (the box)
 				var modifiedHTML = buildGitStatusFileHTML(element.id);
 				$('#unstaged-files-list').append(modifiedHTML);
+				$('#' + element.id).change(function() {
+					toggleFileCheckbox(element);
+				});
 				return Promise.resolve();
 			});
 		} 
@@ -417,6 +431,10 @@ function factory (options) {
 
 				// Mark checkboxes as ticked when moved into staged list
 				$('#' + escapePeriods(element.id)).attr('checked', true);
+				$('#' + escapePeriods(element.id)).change(function() {
+					console.log('here~');
+					return toggleFileCheckbox(element);
+				});
 				return Promise.resolve();
 			});
 		}
@@ -441,6 +459,11 @@ function factory (options) {
 	
 			// Repopulate unstaged file list
 			$('#unstaged-files-list').html(modifiedHTML);
+			$('#unstaged-files-list input').toArray().forEach(function (item) {
+				$(jqID(item.id)).change(function () {
+					toggleFileCheckbox(item);
+				});
+			});
 	
 			return Promise.resolve();
 		})
@@ -461,6 +484,11 @@ function factory (options) {
 	
 			$('#staged-files-list').html(toBeCommittedHTML);
 			$('.staged-files').attr('checked', true);
+			$('#staged-files-list input').toArray().forEach(function (item) {
+				$(jqID(item)).change(function () {
+					toggleFileCheckbox(item);
+				});
+			});
 			return Promise.resolve();
 		})
 		.fail(function (error) {

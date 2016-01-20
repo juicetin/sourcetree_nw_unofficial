@@ -12,7 +12,7 @@ $(document).ready(function() {
  */
 function showFiles() {
 	var full = "";
-	for (var stagedFile in global.stagedFiles) {
+	for (var stagedFile in Git.getStagedFiles()) {
 		full += stagedFile + "<br>";
 	}
 	
