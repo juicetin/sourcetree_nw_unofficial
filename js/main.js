@@ -1,5 +1,4 @@
-"use strict";
-
+"use strict"
 function factory (options) {
 
 	class Commit {
@@ -12,9 +11,16 @@ function factory (options) {
 		}
 	}
 
+	/*
+	 *	Options passed from index
+	 *	Elements that must be determined/only
+	 *	accessible from the top level/included
+	 *	in html file level
+	 */
 	var $ = options.$;
 	var gui = options.gui;
 	var document = options.document;
+	var fsp = options.fsp;
 
 	var win = gui.Window.get();
 	
@@ -22,8 +28,6 @@ function factory (options) {
 	var hl = require('highlight').Highlight;
 	var Set = require('collections/set');
 	
-	var fs = require('fs');
-	var fsp = require('fs-promise');
 	var Promise = require('bluebird');
 	
 	var Git = require('./git.js');
@@ -69,7 +73,7 @@ function factory (options) {
 	functions.test = function () {
 		var gitToolbarButtons = $('.git-toolbar-btn').toArray();
 		gitToolbarButtons.forEach(function (btn) {
-			console.log('id of button is', btn.id);
+			winston.info('id of button is', btn.id);
 		});
 	}
 
@@ -78,7 +82,6 @@ function factory (options) {
 	 */
 	function loadRepoButtonHandler() {
 		$('#load-repo').click(function() {
-			console.log('HERE');
 			loadRepo();
 		});
 	}
@@ -109,12 +112,11 @@ function factory (options) {
 		var tabs = $('#repo-tabs li').toArray();
 		var repos = "";
 		tabs.forEach(function (tab) {
-			winston.info(tab.id);
 			repos += tab.id + "\n";
 		});
 
 		// Write contents to file
-		var path = "./openRepoList.txt";
+		var path = "config/openRepoList.txt";
 		return fsp.writeFile(path, repos)
 		.catch(function (error) {
 			winston.error('Couldn\'t write open tabs to session file: ', error, {});
@@ -158,13 +160,25 @@ function factory (options) {
 	/*
 	 *	Check if the repo path provided is an actual git repo
 	 */
-	function isRepo(path, callback) {
-		var files = fs.readdir(path, function (err, files) {
+	function isRepo(path) {
+		// var files = fs.readdir(path, function (err, files) {
+		// 	if (files.indexOf(".git") > -1) {
+		// 		callback(true);
+		// 	} else {
+		// 		callback(false);
+		// 	}
+		// });
+
+		return fsp.readdir(path)
+		.then(function (files) {
 			if (files.indexOf(".git") > -1) {
-				callback(true);
+				return true;
 			} else {
-				callback(false);
+				return false;
 			}
+		})
+		.catch(function (error) {
+			winston.info('isRepo check error: ', error, {});
 		});
 	}
 
@@ -174,7 +188,7 @@ function factory (options) {
 	 */
 	function loadAllPrevRepos() {
 
-		return fsp.readFile('openRepoList.txt')
+		return fsp.readFile('config/openRepoList.txt')
 		.then(function (data) {
 			var repos = data.toString().split("\n");
 			return Promise.each(repos, function(repo) {
@@ -192,7 +206,8 @@ function factory (options) {
 	 */
 	function createTab(repoPath) {
 
-		isRepo(repoPath, function(repoBool) {
+		return isRepo(repoPath)
+		.then(function (repoBool) {
 			if (repoBool === true) {
 				Git.setRepoPath(repoPath);
 
@@ -221,6 +236,36 @@ function factory (options) {
 				// TODO popup saying directory was not a valid git repository
 			}
 		});
+
+		// isRepo(repoPath, function(repoBool) {
+		// 	if (repoBool === true) {
+		// 		Git.setRepoPath(repoPath);
+
+		// 		// Add repo path to global list of paths
+		// 		var newPath = Git.addRepoPath(repoPath);
+
+		// 		// Add new tab with repo if it didn't exit already
+		// 		if (newPath) {
+		// 			var pathParts = repoPath.split('/');
+		// 			var repoName = 	pathParts[pathParts.length-1];
+		// 			var tabHTML = 	"<li id=" + repoPath +
+		// 				"><a data-toggle=\"tab\" href=\"#\">" + 
+		// 				repoName + "</a></li>";
+
+		// 			// Add 'tab' (but really...) to tab list
+		// 			$('#repo-tabs').append(tabHTML);
+
+		// 			// Assign click functionality
+		// 			$(jqID(repoPath)).click(function () {
+		// 				Git.setRepoPath(repoPath);
+		// 				updateEnvironment();
+		// 			});
+		// 			$(jqID(repoPath)).click();
+		// 		}
+		// 	} else {
+		// 		// TODO popup saying directory was not a valid git repository
+		// 	}
+		// });
 	}
 
 	function jqID(otherwiseIllegalString) {
@@ -351,7 +396,6 @@ function factory (options) {
 	 *	@param {String} elementId - the DOM element id, also the filename
 	 */
 	function removeGitStatusFile(elementId) {
-		console.log('called');
 		$('#' + elementId).next('label').remove();
 		$('#' + elementId).next('br').remove();
 		$('#' + elementId).remove();
@@ -432,7 +476,6 @@ function factory (options) {
 				// Mark checkboxes as ticked when moved into staged list
 				$('#' + escapePeriods(element.id)).attr('checked', true);
 				$('#' + escapePeriods(element.id)).change(function() {
-					console.log('here~');
 					return toggleFileCheckbox(element);
 				});
 				return Promise.resolve();
@@ -511,6 +554,7 @@ function factory (options) {
 		var listId = " id=" + "\'" + commitInfo.sha + "\' ";
 		var listOpen = "<tr " + listId + listClass + ">";
 		var listLine = listOpen + graph + msg + date + author + sha + "</tr>";
+		console.log(listLine);
 		return listLine;
 	}
 
