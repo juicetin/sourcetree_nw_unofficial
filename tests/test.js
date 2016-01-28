@@ -2,6 +2,7 @@ function fix_str (str) {
 	return str.replace(/\//g, "\\/");
 }
 
+// Checking existence of basic buttons
 this.testBasicButtons = function(browser) {
 	browser.expect.element('body').to.be.visible;
 	browser.expect.element('#commit').be.visible;
@@ -19,12 +20,32 @@ this.testBasicButtons = function(browser) {
 	browser.expect.element('#tag').be.visible;
 };
 
+// Checking ability to load repo tabs switch between them
 this.testRepoExistence = function(browser) {
 	browser.expect.element('#' + fix_str('/home/justinting/programming/sourcetree_nw_unofficial')).to.be.visible;
+	browser.expect.element('#' + fix_str('/home/justinting/programming/terem/SSP/ssp_sense-controller')).to.be.visible;
+};
+
+// Check ability to peruse commit details
+this.testCommitDetails = function(browser) {
 	browser.click('#\\/home\\/justinting\\/programming\\/sourcetree_nw_unofficial');
 	browser.expect.element('#e023edd').to.be.visible;
-	browser.click('#load-repo');
+	browser.click('#e023edd');
+	browser.waitForElementPresent('#e023edd-code', 1000, false);
+	browser.expect.element('#e023edd-code').text.to.contain('e023edd');
+	browser.expect.element('#e023edd-code').text.to.contain('WIP on enhancement/3: 8bf0b2a fixed erroneous \'not\' condition in push window button handler');
 };
+
+// Test commit
+// this.testStagingFiles= function(browser) {};
+
+// Test uncommitting
+// this.testUnstagingFiles = function(browser) {};
+
+// Test pushing
+// this.testPushing = function(browser) {};
+
+
 
 // module.exports = {
 // 	'Basic button clicks': function (browser) {

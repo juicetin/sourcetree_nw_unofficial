@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <testsuites errors="0"
             failures="0"
-            tests="2">
+            tests="3">
 
   <testsuite name="test"
     errors="0" failures="0" hostname="" id="" package="test" skipped="0"
-    tests="2" time="2.907" timestamp="Thu, 28 Jan 2016 13:02:45 GMT">
+    tests="3" time="7.966" timestamp="Thu, 28 Jan 2016 22:35:32 GMT">
   
-    <testcase name="testBasicButtons" time="2.614" assertions="14">
+    <testcase name="testBasicButtons" time="2.663" assertions="14">
 
     
 
@@ -38,7 +38,18 @@
     
     </testcase>
   
-    <testcase name="testRepoExistence" time="0.2930" assertions="2">
+    <testcase name="testRepoExistence" time="0.06600" assertions="2">
+
+    
+
+    
+    </testcase>
+  
+    <testcase name="testCommitDetails" time="5.237" assertions="4">
+
+    
+
+    
 
     
 
